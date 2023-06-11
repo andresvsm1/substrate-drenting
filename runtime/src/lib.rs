@@ -45,8 +45,8 @@ use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
-/// Import the apartnents pallet.
-pub use pallet_apartments;
+/// Import the places pallet.
+pub use pallet_places;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -267,7 +267,7 @@ impl pallet_sudo::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 }
 
-impl pallet_apartments::Config for Runtime {
+impl pallet_places::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 }
 
@@ -287,7 +287,7 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment,
 		Sudo: pallet_sudo,
 		// Include the custom logic from our custom pallets
-		ApartmentsModule: pallet_apartments,
+		PlacesMoule: pallet_places,
 	}
 );
 
@@ -334,7 +334,7 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
-		[pallet_apartments, ApartmentsModule]
+		[pallet_places, PlacesModule]
 	);
 }
 
