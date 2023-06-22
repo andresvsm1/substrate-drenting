@@ -334,7 +334,7 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
-		[pallet_places, PlacesModule]
+		// [pallet_places, PlacesModule]
 	);
 }
 
