@@ -287,7 +287,7 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment,
 		Sudo: pallet_sudo,
 		// Include the custom logic from our custom pallets
-		PlacesMoule: pallet_places,
+		Places: pallet_places,
 	}
 );
 

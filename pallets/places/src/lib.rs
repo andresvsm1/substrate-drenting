@@ -67,7 +67,7 @@ pub mod pallet {
 		/// * `images` - List of images from the place, hash references
 		/// * `number_of_floors` - Number of floors, in case the Place has more than one
 		#[pallet::call_index(1)]
-		pub fn create_master_ddo(
+		pub fn create_place(
 			origin: OriginFor<T>,
 			place_type: PlaceType,
 			name: Bytes,
@@ -80,7 +80,7 @@ pub mod pallet {
 			// Check sender
 			let sender = ensure_signed(origin)?;
 
-			let place_id = Self::create_place(
+			let place_id = Self::_create_place(
 				place_type,
 				name,
 				address,

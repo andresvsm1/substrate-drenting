@@ -3,7 +3,7 @@ use frame_support::{ensure, sp_runtime::traits::Hash, sp_std::prelude::*};
 
 use crate::{structures::*, Bytes, Config, Error, Pallet, PlacesData, PlacesIds};
 impl<T: Config> Pallet<T> {
-	pub fn create_place(
+	pub fn _create_place(
 		place_type: PlaceType,
 		name: Bytes,
 		address: Bytes,
