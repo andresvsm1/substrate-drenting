@@ -1,6 +1,6 @@
 [package]
 name = "pallet-places"
-version = "4.0.0-dev"
+version = "0.1.0"
 description = "Pallet that models places logic."
 authors = ["Andres S. <https://github.com/andresvsm1>"]
 edition = "2021"
