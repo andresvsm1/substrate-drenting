@@ -2,7 +2,11 @@
 use crate::{
 	interface::PlacesInterface, structures::*, Bytes, Config, Error, Pallet, PlacesData, PlacesIds,
 };
-use frame_support::{ensure, sp_runtime::traits::Hash, sp_std::prelude::*};
+use frame_support::{
+	ensure,
+	sp_runtime::traits::Hash,
+	sp_std::{collections::btree_set::BTreeSet, prelude::*},
+};
 
 impl<T: Config> PlacesInterface<T> for Pallet<T> {
 	type Error = Error<T>;
@@ -24,7 +28,7 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 			address,
 			description,
 			price_per_night,
-			images,
+			images.into_iter().collect(),
 			number_of_floors,
 			sender.clone(),
 		);
@@ -73,17 +77,13 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 			if let Some(new_ppn) = price_per_night {
 				place_data.price_per_night = new_ppn;
 			}
+
 			if let Some(new_images) = images {
-				let mut images = place_data.images.clone();
-
-				for image in new_images {
-					if !images.contains(&image) {
-						images.push(image);
-					}
-				}
-
-				place_data.images = images;
+				let new_images_set: BTreeSet<T::Hash> = new_images.into_iter().collect();
+				let images_union = new_images_set.union(&place_data.images).cloned().collect();
+				place_data.images = images_union;
 			}
+
 			if let Some(new_nof) = number_of_floors {
 				place_data.number_of_floors = new_nof;
 			}

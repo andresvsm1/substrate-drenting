@@ -2,7 +2,7 @@
 
 use super::{Bytes, Config};
 use codec::{Decode, Encode};
-use frame_support::sp_std::prelude::*;
+use frame_support::sp_std::{prelude::*, collections::btree_set::BTreeSet};
 use scale_info::TypeInfo;
 
 // Struct to keep track of chain interactions
@@ -49,7 +49,7 @@ pub struct PlaceData<T: Config> {
 	/// Whether the place is available for rent. Controls if the place can receive bookings or not.
 	pub active: bool,
 	/// The images of the place. References to external images.
-	pub images: Vec<T::Hash>,
+	pub images: BTreeSet<T::Hash>,
 	/// The number of floors of the house, in case it has more than
 	pub number_of_floors: u8,
 	pub on_chain_creation: AuditTrail<T>,
@@ -63,7 +63,7 @@ impl<T: Config> PlaceData<T> {
 		address: Bytes,
 		description: T::Hash,
 		price_per_night: u64,
-		images: Vec<T::Hash>,
+		images: BTreeSet<T::Hash>,
 		number_of_floors: Option<u8>,
 		created_by: T::AccountId,
 	) -> Self {
@@ -89,7 +89,7 @@ pub struct PlaceHashingData<T: Config> {
 	pub name: Bytes,
 	pub address: Bytes,
 	pub description: T::Hash,
-	pub images: Vec<T::Hash>,
+	pub images: BTreeSet<T::Hash>,
 	pub number_of_floors: u8,
 }
 

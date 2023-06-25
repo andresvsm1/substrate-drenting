@@ -60,7 +60,7 @@ fn test_create_place_should_work() {
 				description: create_hash("Demo Description"),
 				price_per_night: 10,
 				active: true,
-				images: vec![create_hash("image_1"), create_hash("image_2")],
+				images: vec![create_hash("image_1"), create_hash("image_2")].into_iter().collect(),
 				number_of_floors: 1,
 				on_chain_creation: AuditTrail { account: 1, block: 0, time: 0 },
 				on_chain_update: None
@@ -110,7 +110,9 @@ fn test_update_place_should_work() {
 					create_hash("image_1"),
 					create_hash("image_2"),
 					create_hash("image_3")
-				],
+				]
+				.into_iter()
+				.collect(),
 				number_of_floors: 2,
 				on_chain_creation: AuditTrail { account: 1, block: 0, time: 0 },
 				on_chain_update: Some(AuditTrail { account: 1, block: 0, time: 0 }),
