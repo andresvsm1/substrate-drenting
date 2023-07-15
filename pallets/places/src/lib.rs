@@ -70,12 +70,10 @@ pub mod pallet {
 		PlaceNotFound,
 	}
 
-	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
-	// These functions materialize as "extrinsics", which are often compared to transactions.
-	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Extrinsic to create a new Place
+		///
 		/// * `place_type` - The PlaceType
 		/// * `name` - Name for the Place, initially `Bytes`
 		/// * `address` - Location of the Place
@@ -114,6 +112,7 @@ pub mod pallet {
 		}
 		/// Extrinsic to update a Place. At the time it allows most of the data to be modified,
 		/// but at some point it'll be restricted. DEV
+		///
 		/// * `place_id` - The Place identifier
 		/// * `place_type` - The PlaceType
 		/// * `name` - Name for the Place, initially `Bytes`
@@ -155,6 +154,7 @@ pub mod pallet {
 		}
 
 		/// Extrinsic to remove a Place.
+		///
 		/// * `place_id` - The Place identifier
 		#[pallet::call_index(3)]
 		pub fn remove_place(origin: OriginFor<T>, place_id: T::Hash) -> DispatchResult {

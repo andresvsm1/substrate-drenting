@@ -1,8 +1,8 @@
-use crate::{Bytes, PlaceType};
+use crate::{Bytes, PlaceType, Config};
 use frame_support::sp_std::prelude::*;
 
 /// Interface for Places pallet
-pub trait PlacesInterface<T: frame_system::Config> {
+pub trait PlacesInterface<T: Config> {
 	type Error;
 
 	/// Store a Place with its information

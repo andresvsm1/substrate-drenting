@@ -62,6 +62,7 @@ fn test_create_place_should_work() {
 				active: true,
 				images: vec![create_hash("image_1"), create_hash("image_2")].into_iter().collect(),
 				number_of_floors: 1,
+				owner: 1,
 				on_chain_creation: AuditTrail { account: 1, block: 0, time: 0 },
 				on_chain_update: None
 			})
@@ -114,6 +115,7 @@ fn test_update_place_should_work() {
 				.into_iter()
 				.collect(),
 				number_of_floors: 2,
+				owner: 1,
 				on_chain_creation: AuditTrail { account: 1, block: 0, time: 0 },
 				on_chain_update: Some(AuditTrail { account: 1, block: 0, time: 0 }),
 			})

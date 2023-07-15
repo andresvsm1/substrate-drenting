@@ -52,6 +52,9 @@ pub struct PlaceData<T: Config> {
 	pub images: BTreeSet<T::Hash>,
 	/// The number of floors of the house, in case it has more than
 	pub number_of_floors: u8,
+	/// The owner of the place
+	pub owner: T::AccountId,
+	/// Audit Trailing
 	pub on_chain_creation: AuditTrail<T>,
 	pub on_chain_update: Option<AuditTrail<T>>,
 }
@@ -76,6 +79,7 @@ impl<T: Config> PlaceData<T> {
 			active: true,
 			images,
 			number_of_floors: number_of_floors.unwrap_or(1),
+			owner: created_by.clone(),
 			on_chain_creation: AuditTrail::<T>::new(created_by),
 			on_chain_update: None,
 		}
