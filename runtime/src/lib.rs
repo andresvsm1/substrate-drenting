@@ -48,6 +48,9 @@ pub use sp_runtime::{Perbill, Permill};
 /// Import the places pallet.
 pub use pallet_places;
 
+/// Import the bookings pallet.
+pub use pallet_bookings;
+
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -271,6 +274,11 @@ impl pallet_places::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 }
 
+impl pallet_bookings::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime
@@ -288,6 +296,7 @@ construct_runtime!(
 		Sudo: pallet_sudo,
 		// Include the custom logic from our custom pallets
 		Places: pallet_places,
+		Bookings: pallet_bookings,
 	}
 );
 
