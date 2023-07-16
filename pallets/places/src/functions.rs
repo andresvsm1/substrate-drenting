@@ -17,6 +17,8 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 		address: Bytes,
 		description: T::Hash,
 		price_per_night: u64,
+		checkin_hour: u32,
+		checkout_hour: u32,
 		images: Vec<T::Hash>,
 		number_of_floors: Option<u8>,
 		sender: &T::AccountId,
@@ -28,6 +30,8 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 			address,
 			description,
 			price_per_night,
+			checkin_hour,
+			checkout_hour,
 			images.into_iter().collect(),
 			number_of_floors,
 			sender.clone(),
@@ -56,6 +60,8 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 		address: Option<Bytes>,
 		description: Option<T::Hash>,
 		price_per_night: Option<u64>,
+		checkin_hour: Option<u32>,
+		checkout_hour: Option<u32>,
 		images: Option<Vec<T::Hash>>,
 		number_of_floors: Option<u8>,
 		sender: &T::AccountId,
@@ -76,6 +82,14 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 			}
 			if let Some(new_ppn) = price_per_night {
 				place_data.price_per_night = new_ppn;
+			}
+
+			if let Some(cih) =  checkin_hour {
+				place_data.checkin_hour = cih;
+			}
+
+			if let Some(coh) =  checkout_hour {
+				place_data.checkin_hour = coh;
 			}
 
 			if let Some(new_images) = images {

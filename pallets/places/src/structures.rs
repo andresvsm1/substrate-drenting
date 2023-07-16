@@ -46,6 +46,10 @@ pub struct PlaceData<T: Config> {
 	pub description: T::Hash,
 	/// The price of the place.
 	pub price_per_night: u64,
+	/// The hour picked by the owner for the checkin 0-23
+	pub checkin_hour: u32,
+	/// The hour picked by the owner for the checkout 0-23
+	pub checkout_hour: u32,
 	/// Whether the place is available for rent. Controls if the place can receive bookings or not.
 	pub active: bool,
 	/// The images of the place. References to external images.
@@ -66,6 +70,8 @@ impl<T: Config> PlaceData<T> {
 		address: Bytes,
 		description: T::Hash,
 		price_per_night: u64,
+		checkin_hour: u32,
+		checkout_hour: u32,
 		images: BTreeSet<T::Hash>,
 		number_of_floors: Option<u8>,
 		created_by: T::AccountId,
@@ -76,6 +82,8 @@ impl<T: Config> PlaceData<T> {
 			address,
 			description,
 			price_per_night,
+			checkin_hour,
+			checkout_hour,
 			active: true,
 			images,
 			number_of_floors: number_of_floors.unwrap_or(1),

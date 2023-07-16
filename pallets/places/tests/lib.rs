@@ -22,6 +22,8 @@ fn create_demo_place() {
 		b"Demo Address".to_vec(),
 		create_hash("Demo Description"),
 		10,
+		17,
+		12,
 		vec![create_hash("image_1"), create_hash("image_2")],
 		None,
 	);
@@ -43,6 +45,8 @@ fn test_create_place_should_work() {
 			b"Demo Address".to_vec(),
 			create_hash("Demo Description"),
 			10,
+			17,
+			12,
 			vec![create_hash("image_1"), create_hash("image_2")],
 			None,
 		));
@@ -59,6 +63,8 @@ fn test_create_place_should_work() {
 				address: b"Demo Address".to_vec(),
 				description: create_hash("Demo Description"),
 				price_per_night: 10,
+				checkin_hour: 17,
+				checkout_hour: 12,
 				active: true,
 				images: vec![create_hash("image_1"), create_hash("image_2")].into_iter().collect(),
 				number_of_floors: 1,
@@ -80,6 +86,8 @@ fn test_update_place_should_work() {
 		let new_address = Some(b"Demo Address 2".to_vec());
 		let new_description = Some(create_hash("Demo Description 2"));
 		let new_price_per_night = Some(20);
+		let new_checkin_hour = Some(18);
+		let new_checkout_hour = Some(11);
 		let new_images = Some(vec![create_hash("image_3"), create_hash("image_2")]);
 		let new_number_of_floors = Some(2);
 
@@ -91,6 +99,8 @@ fn test_update_place_should_work() {
 			new_address,
 			new_description,
 			new_price_per_night,
+			new_checkin_hour,
+			new_checkout_hour,
 			new_images,
 			new_number_of_floors,
 		));
@@ -106,6 +116,8 @@ fn test_update_place_should_work() {
 				address: b"Demo Address 2".to_vec(),
 				description: create_hash("Demo Description 2"),
 				price_per_night: 20,
+				checkin_hour: 18,
+				checkout_hour: 11,
 				active: true,
 				images: vec![
 					create_hash("image_1"),
