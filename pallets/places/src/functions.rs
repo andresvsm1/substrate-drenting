@@ -89,7 +89,7 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 			}
 
 			if let Some(coh) =  checkout_hour {
-				place_data.checkin_hour = coh;
+				place_data.checkout_hour = coh;
 			}
 
 			if let Some(new_images) = images {
