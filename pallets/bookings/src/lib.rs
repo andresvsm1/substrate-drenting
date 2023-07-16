@@ -14,7 +14,7 @@ pub mod pallet {
 	use frame_support::{
 		pallet_prelude::{ValueQuery, *},
 		sp_std::prelude::*,
-		traits::Currency,
+		traits::{Currency, ReservableCurrency},
 	};
 	use frame_system::pallet_prelude::*;
 
@@ -35,7 +35,7 @@ pub mod pallet {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		/// The Currency handler for the Bookings pallet.
-		type Currency: frame_support::traits::Currency<Self::AccountId>;
+		type Currency: ReservableCurrency<Self::AccountId>;
 	}
 
 	/// Stores all the bookings in the system
@@ -54,6 +54,16 @@ pub mod pallet {
 	#[pallet::getter(fn get_place_bookings)]
 	pub type PlaceBookings<T: Config> =
 		StorageMap<_, Twox64Concat, T::Hash, Vec<T::Hash>, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn get_pending_booking_withdraws_by_account)]
+	pub type PendingBookingWithdraws<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, Vec<(T::Hash, BalanceOf<T>)>, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn get_pending_deposit_withdraws_by_account)]
+	pub type PendingDepositWithdraws<T: Config> =
+		StorageMap<_, Twox64Concat, T::Hash, Vec<(T::Hash, BalanceOf<T>)>, ValueQuery>;
 
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/main-docs/build/events-errors/

@@ -2,12 +2,14 @@
 use crate::{
 	interface::BookingsInterface,
 	structures::{BookingData, BookingHashingData},
-	BalanceOf, BookingsData, BookingsIds, Config, Error, Pallet, PlaceBookings,
+	BalanceOf, BookingsData, BookingsIds, Config, Error, Pallet, PendingBookingWithdraws,
+	PlaceBookings,
 };
 use frame_support::{
 	ensure,
 	sp_runtime::{traits::Hash, DispatchError},
 	sp_std::cmp::Ordering,
+	traits::ReservableCurrency,
 };
 pub use pallet_places::Error as PlacesError;
 
@@ -28,7 +30,7 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 			}
 
 			let booking_data: BookingData<T> =
-				BookingData::new(place.owner, sender, start_date, end_date, amount);
+				BookingData::new(place.owner, sender.clone(), start_date, end_date, amount);
 
 			let hashing_data = BookingHashingData::from(booking_data.clone());
 			let booking_id = T::Hashing::hash_of(&hashing_data);
@@ -40,6 +42,11 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 			<BookingsData<T>>::insert(booking_id, booking_data);
 			<BookingsIds<T>>::append(booking_id);
 			<PlaceBookings<T>>::mutate(place_id, |booking_list| booking_list.push(booking_id));
+			// Lock users funds and store a reference
+			T::Currency::reserve(&sender, amount)?;
+			<PendingBookingWithdraws<T>>::mutate(&sender, |booking_withdraws| {
+				booking_withdraws.push((booking_id, amount));
+			});
 
 			// Logging to the console on debug level
 			log::debug!(target: "did", "A new Booking with ID ➡ {:?} has been placed.", booking_id);
