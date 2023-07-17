@@ -8,9 +8,8 @@ pub mod structures;
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
-	use crate::interface::BookingsInterface;
-
 	use super::*;
+	use crate::interface::BookingsInterface;
 	use frame_support::{
 		pallet_prelude::{ValueQuery, *},
 		sp_std::prelude::*,
@@ -89,6 +88,12 @@ pub mod pallet {
 		BookingDatesNotAvailable,
 		/// Owner cannot book its own place
 		CannotBookOwnedPlace,
+		/// Account does not have enough free balance to book
+		NotEnoughFreeBalance,
+		/// end_date cannot be less than the start_date
+		InvalidDates,
+		/// start_date cannot be less or equal to current chain moment
+		InvalidStartDate,
 	}
 
 	#[pallet::call]
@@ -112,6 +117,10 @@ pub mod pallet {
 		) -> DispatchResult {
 			// Check sender
 			let sender = ensure_signed(origin)?;
+			ensure!(end_date > start_date, Error::<T>::InvalidDates);
+
+			let current_moment = <pallet_places::pallet_timestamp::Pallet<T>>::now();
+			ensure!(start_date > current_moment, Error::<T>::InvalidStartDate);
 
 			let booking_id =
 				Self::_create_booking(place_id, start_date, end_date, sender.clone(), amount)?;

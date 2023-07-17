@@ -21,6 +21,7 @@ frame-support = { version = "4.0.0-dev", default-features = false, git = "https:
 frame-system = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-places = { version = "0.1.0", default-features = false, path = "../places" }
 log = "0.4.19"
+chrono = { version = "0.4.26", default_features = false }
 
 [dev-dependencies]
 sp-core = { version = "7.0.0", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
@@ -31,6 +32,7 @@ sp-runtime = { version = "7.0.0", git = "https://github.com/paritytech/substrate
 default = ["std"]
 std = [
 	"codec/std",
+	"chrono/std",
 	"frame-benchmarking?/std",
 	"frame-support/std",
 	"frame-system/std",
