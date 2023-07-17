@@ -6,6 +6,8 @@ pub mod functions;
 pub mod interface;
 pub mod structures;
 
+pub use pallet_timestamp;
+
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
 	use crate::interface::PlacesInterface;
