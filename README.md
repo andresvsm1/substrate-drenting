@@ -1,12 +1,10 @@
-# Substrate Node Template
+# DRenting
 
-A fresh [Substrate](https://substrate.io/) node, ready for hacking :rocket:
+DRenting is an exciting proof of concept that aims to model vacation rental industry by leveraging the power of decentralized technologies. Built on the Substrate blockchain framework, DRenting provides a secure, transparent, and trustless platform for renting and booking accommodations, inspired by the popular service Airbnb.
 
-A standalone version of this template is available for each release of Polkadot in the [Substrate Developer Hub Parachain Template](https://github.com/substrate-developer-hub/substrate-parachain-template/) repository.
-The parachain template is generated directly at each Polkadot release branch from the [Node Template in Substrate](https://github.com/paritytech/substrate/tree/master/bin/node-template) upstream
+## Motivation
 
-It is usually best to use the standalone version to start a new project.
-All bugs, suggestions, and feature requests should be made upstream in the [Substrate](https://github.com/paritytech/substrate/tree/master/bin/node-template) repository.
+Traditional vacation rental platforms often rely on centralized intermediaries, leading to concerns about data privacy, high fees, and lack of transparency. DRenting seeks to disrupt this model by introducing a decentralized approach that fosters trust and empowers both hosts and guests.
 
 ## Getting Started
 
@@ -41,19 +39,19 @@ cargo +nightly doc --open
 The following command starts a single-node development chain that doesn't persist state:
 
 ```sh
-./target/release/node-template --dev
+./target/release/drenting-node --dev
 ```
 
 To purge the development chain's state, run the following command:
 
 ```sh
-./target/release/node-template purge-chain --dev
+./target/release/drenting-node purge-chain --dev
 ```
 
 To start the development chain with detailed logging, run the following command:
 
 ```sh
-RUST_BACKTRACE=1 ./target/release/node-template -ldebug --dev
+RUST_BACKTRACE=1 ./target/release/drenting-node -ldebug --dev
 ```
 
 Development chains:
@@ -70,7 +68,7 @@ To persist chain state between runs, specify a base path by running a command si
 $ mkdir my-chain-state
 
 // Use of that folder to store the chain state
-$ ./target/release/node-template --dev --base-path ./my-chain-state/
+$ ./target/release/drenting-node --dev --base-path ./my-chain-state/
 
 // Check the folder structure created inside the base path after running the chain
 $ ls ./my-chain-state
@@ -87,13 +85,7 @@ After you start the node template locally, you can interact with it using the ho
 A hosted version is also available on [IPFS (redirect) here](https://dotapps.io/) or [IPNS (direct) here](ipns://dotapps.io/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/explorer).
 You can also find the source code and instructions for hosting your own instance on the [polkadot-js/apps](https://github.com/polkadot-js/apps) repository.
 
-### Multi-Node Local Testnet
-
-If you want to see the multi-node consensus algorithm in action, see [Simulate a network](https://docs.substrate.io/tutorials/get-started/simulate-network/).
-
-## Template Structure
-
-A Substrate project such as this consists of a number of components that are spread across a few directories.
+## Code Structure
 
 ### Node
 
@@ -134,49 +126,23 @@ Review the [FRAME runtime implementation](./runtime/src/lib.rs) included in this
 
 ### Pallets
 
-The runtime in this project is constructed using many FRAME pallets that ship with the [core Substrate repository](https://github.com/paritytech/substrate/tree/master/frame) and a template pallet that is [defined in the `pallets`](./pallets/template/src/lib.rs) directory.
+The runtime in this project is constructed using many FRAME pallets that ship with the [core Substrate repository](https://github.com/paritytech/substrate/tree/master/frame) and the following custom pallets:
 
-A FRAME pallet is compromised of a number of blockchain primitives:
+- `pallet_palces`. It is a fundamental building block of the DRenting platform, responsible for managing and storing information related to rental accommodations, commonly referred to as "places." It enables users (hosts) to register new places for rent and allows guests to explore and book these accommodations. the following actions are available:
 
-- Storage: FRAME defines a rich set of powerful [storage abstractions](https://docs.substrate.io/build/runtime-storage/) that makes it easy to use Substrate's efficient key-value database to manage the evolving state of a blockchain.
-- Dispatchables: FRAME pallets define special types of functions that can be invoked (dispatched) from outside of the runtime in order to update its state.
-- Events: Substrate uses [events and errors](https://docs.substrate.io/build/events-and-errors/) to notify users of important changes in the runtime.
-- Errors: When a dispatchable fails, it returns an error.
-- Config: The `Config` configuration interface is used to define the types and parameters upon which a FRAME pallet depends.
+  - **Place Registration**: Hosts can create and register new places on the platform by providing essential details such as place type, name, address, description, price per night, check-in/out hours, images, and more.
+  - **Place Updates**: The pallet allows hosts to update existing place information, including its name, address, description, price, and other attributes. This feature ensures that place listings remain up-to-date and accurate.
+  - **Place Removal**: In case a host decides to remove a place listing from the platform, the pallet facilitates the secure and permanent deletion of the associated place data.
 
-## Alternative Installations
+- `pallets_bookings`. This pallet complements the `pallet_places` by handling the booking-related functionalities on the DRenting platform. It facilitates secure and transparent booking processes, ensuring smooth interactions between hosts and guests. It provides the following functionalities:
+  - **Booking Creation**: Guests can initiate a booking request for a specific place by providing the desired booking period and the amount to be paid.
+  - **Booking Confirmation**: After a booking request is submitted, the host has the option to approve or reject the booking. The pallet ensures a seamless flow for confirmation and payment processing. (WIP)
+  - **Booking Status Tracking**: The pallet tracks the status of each booking, including pending, confirmed, or canceled, enabling both hosts and guests to monitor their reservations. (WIP)
+  - **Booking Modification**: If necessary, guests can request to modify their existing bookings, such as changing the booking dates or adjusting the payment amount. (WIP)
+  - **Booking Cancellation**: In case of unforeseen circumstances, guests can cancel their bookings within the allowed time frame, and the pallet handles the necessary refund processes. (WIP)
 
-Instead of installing dependencies and building this source directly, consider the following alternatives.
+**Interaction between Pallets:**
 
-### CI
+The `pallet_places` and `pallet_bookings` pallets are designed to work seamlessly together, enabling a comprehensive and decentralized renting experience.
 
-#### Binary
-
-Check the [CI release workflow](./.github/workflows/release.yml) to see how the binary is built on CI.
-You can modify the compilation targets depending on your needs.
-
-Allow GitHub actions in your forked repository to build the binary for you.
-
-Push a tag. For example, `v0.1.1`. Based on [Semantic Versioning](https://semver.org/), the supported tag format is `v?MAJOR.MINOR.PATCH(-PRERELEASE)?(+BUILD_METADATA)?` (the leading "v", pre-release version, and build metadata are optional and the optional prefix is also supported).
-
-After the pipeline is finished, you can download the binary from the releases page.
-
-#### Container
-
-Check the [CI release workflow](./.github/workflows/release.yml) to see how the Docker image is built on CI.
-
-Add your `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets or other organization settings to your forked repository.
-Change the `DOCKER_REPO` variable in the workflow to `[your DockerHub registry name]/[image name]`.
-
-Push a tag.
-
-After the image is built and pushed, you can pull it with `docker pull <DOCKER_REPO>:<tag>`.
-
-### Nix
-
-Install [nix](https://nixos.org/), and optionally [direnv](https://github.com/direnv/direnv) and [lorri](https://github.com/nix-community/lorri) for a fully plug-and-play experience for setting up the development environment.
-To get all the correct dependencies, activate direnv `direnv allow` and lorri `lorri shell`.
-
-### Docker
-
-Please follow the [Substrate Docker instructions here](https://github.com/paritytech/substrate/blob/master/docker/README.md) to build the Docker container with the Substrate Node Template binary.
+The combination of these custom pallets forms the backbone of the DRenting proof of concept, showcasing the potential of Substrate-based blockchain solutions in the vacation rental industry. As the project evolves, these pallets will serve as a basis for additional features and further advancements in decentralized renting.
