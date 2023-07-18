@@ -128,7 +128,7 @@ Review the [FRAME runtime implementation](./runtime/src/lib.rs) included in this
 
 The runtime in this project is constructed using many FRAME pallets that ship with the [core Substrate repository](https://github.com/paritytech/substrate/tree/master/frame) and the following custom pallets:
 
-- `pallet_palces`. It is a fundamental building block of the DRenting platform, responsible for managing and storing information related to rental accommodations, commonly referred to as "places." It enables users (hosts) to register new places for rent and allows guests to explore and book these accommodations. the following actions are available:
+- `pallet_places`. It is a fundamental building block of the DRenting platform, responsible for managing and storing information related to rental accommodations, commonly referred to as "places." It enables users (hosts) to register new places for rent and allows guests to explore and book these accommodations. the following actions are available:
 
   - **Place Registration**: Hosts can create and register new places on the platform by providing essential details such as place type, name, address, description, price per night, check-in/out hours, images, and more.
   - **Place Updates**: The pallet allows hosts to update existing place information, including its name, address, description, price, and other attributes. This feature ensures that place listings remain up-to-date and accurate.
