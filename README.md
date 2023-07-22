@@ -135,7 +135,7 @@ The runtime in this project is constructed using many FRAME pallets that ship wi
   - **Place Removal**: In case a host decides to remove a place listing from the platform, the pallet facilitates the secure and permanent deletion of the associated place data.
 
 - `pallets_bookings`. This pallet complements the `pallet_places` by handling the booking-related functionalities on the DRenting platform. It facilitates secure and transparent booking processes, ensuring smooth interactions between hosts and guests. It provides the following functionalities:
-  - **Booking Creation**: Guests can initiate a booking request for a specific place by providing the desired booking period and the amount to be paid.
+  - **Booking Creation**: Guests can initiate a booking request for a specific place by providing the desired booking period and the amount to be paid. A graph showing the different states of a booking can be seen in the documentation files: [booking states](docs/drenting_booking_states.png)
   - **Booking Confirmation**: After a booking request is submitted, the host has the option to approve or reject the booking. The pallet ensures a seamless flow for confirmation and payment processing. (WIP)
   - **Booking Status Tracking**: The pallet tracks the status of each booking, including pending, confirmed, or canceled, enabling both hosts and guests to monitor their reservations. (WIP)
   - **Booking Modification**: If necessary, guests can request to modify their existing bookings, such as changing the booking dates or adjusting the payment amount. (WIP)
