@@ -82,6 +82,22 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 	) -> Result<<T>::Hash, DispatchError> {
 		todo!()
 	}
+
+	fn _confirm_booking(booking_id: &<T>::Hash) -> Result<<T>::Hash, DispatchError> {
+		todo!()
+	}
+
+	fn _reject_booking(booking_id: &<T>::Hash) -> Result<<T>::Hash, DispatchError> {
+		todo!()
+	}
+
+	fn _checkin(booking_id: &<T>::Hash) -> Result<<T>::Hash, DispatchError> {
+		todo!()
+	}
+
+	fn _withdraw_booking(booking_id: &<T>::Hash) -> Result<<T>::Hash, DispatchError> {
+		todo!()
+	}
 }
 
 /// Auxiliar functions implementation

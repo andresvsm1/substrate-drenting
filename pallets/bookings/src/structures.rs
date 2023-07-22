@@ -6,6 +6,17 @@ use frame_support::sp_std::prelude::*;
 use scale_info::TypeInfo;
 
 #[derive(Eq, PartialEq, Encode, Decode, TypeInfo, Clone, Debug)]
+pub enum BookingState {
+	Created,
+	Confirmed,
+	Rejected,
+	Withdrawable,
+	UserCanWithdraw,
+	OwnerCanWithdraw,
+	Completed,
+}
+
+#[derive(Eq, PartialEq, Encode, Decode, TypeInfo, Clone, Debug)]
 #[scale_info(skip_type_params(T))]
 pub struct BookingData<T: Config> {
 	pub host: T::AccountId,
