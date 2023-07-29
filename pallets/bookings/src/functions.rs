@@ -2,14 +2,14 @@
 use crate::{
 	interface::BookingsInterface,
 	structures::{BookingData, BookingHashingData},
-	BalanceOf, BookingsData, BookingsIds, Config, Error, Pallet, PendingBookingWithdraws,
-	PlaceBookings,
+	BalanceOf, BookingState, BookingsData, BookingsIds, Config, Error, Pallet,
+	PendingBookingWithdraws, PlaceBookings,
 };
 use chrono::{DateTime, NaiveDateTime, Timelike, Utc};
 use frame_support::{
 	ensure,
 	sp_runtime::{traits::Hash, ArithmeticError, DispatchError},
-	sp_std::cmp::Ordering,
+	sp_std::{cmp::Ordering, vec::Vec},
 	traits::ReservableCurrency,
 };
 use pallet_places::Error as PlacesError;
@@ -18,10 +18,10 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 	type Error = Error<T>;
 
 	fn _create_booking(
+		sender: T::AccountId,
 		place_id: T::Hash,
 		start_date: T::Moment,
 		end_date: T::Moment,
-		sender: T::AccountId,
 		amount: BalanceOf<T>,
 	) -> Result<T::Hash, DispatchError> {
 		if let Some(place) = pallet_places::Pallet::<T>::get_place_by_id(place_id) {
@@ -31,16 +31,21 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 			let formatted_start_date = Self::modify_timestamp(start_date, place.checkin_hour)?;
 			let formatted_end_date = Self::modify_timestamp(end_date, place.checkout_hour)?;
 
+			let current_moment = <pallet_places::pallet_timestamp::Pallet<T>>::now();
+			ensure!(formatted_start_date > current_moment, Error::<T>::InvalidStartDate);
+
 			if !Self::check_availability(place_id, formatted_start_date, formatted_end_date) {
 				return Err(Error::<T>::BookingDatesNotAvailable.into());
 			}
 
 			let booking_data: BookingData<T> = BookingData::new(
-				place.owner,
+				place_id,
+				place.owner.clone(),
 				sender.clone(),
 				formatted_start_date,
 				formatted_end_date,
 				amount,
+				BookingState::Created,
 			);
 
 			let hashing_data = BookingHashingData::from(booking_data.clone());
@@ -55,7 +60,7 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 			<PlaceBookings<T>>::mutate(place_id, |booking_list| booking_list.push(booking_id));
 			// Lock users funds and store a reference
 			T::Currency::reserve(&sender, amount)?;
-			<PendingBookingWithdraws<T>>::mutate(&sender, |booking_withdraws| {
+			<PendingBookingWithdraws<T>>::mutate(&place.owner, |booking_withdraws| {
 				booking_withdraws.push((booking_id, amount));
 			});
 
@@ -68,34 +73,73 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 	}
 
 	fn _update_booking(
+		sender: <T>::AccountId,
 		booking_id: &<T>::Hash,
+		place_id: &T::Hash,
 		start_date: <T>::Moment,
 		end_date: <T>::Moment,
-		sender: <T>::AccountId,
 	) -> Result<<T>::Hash, DispatchError> {
 		todo!()
 	}
 
 	fn _cancel_booking(
-		booking_id: &<T>::Hash,
 		sender: <T>::AccountId,
+		booking_id: &<T>::Hash,
 	) -> Result<<T>::Hash, DispatchError> {
 		todo!()
 	}
 
-	fn _confirm_booking(booking_id: &<T>::Hash) -> Result<<T>::Hash, DispatchError> {
+	fn _confirm_booking(
+		sender: <T>::AccountId,
+		booking_id: &<T>::Hash,
+	) -> Result<<T>::Hash, DispatchError> {
+		if let Some(mut booking) = Self::get_booking_by_id(booking_id) {
+			ensure!(sender == booking.host, Error::<T>::NotPlaceOwner);
+			ensure!(booking.state == BookingState::Created, Error::<T>::WrongState);
+			let current_moment = <pallet_places::pallet_timestamp::Pallet<T>>::now();
+			ensure!(current_moment < booking.start_date, Error::<T>::CannotConfirmOutdatedBooking);
+
+			for booking_id_to_cancel in Self::get_overlapping_bookings(
+				booking.place_id,
+				*booking_id,
+				booking.start_date,
+				booking.end_date,
+			) {
+				Self::_do_cancel_booking(
+					booking.place_id,
+					booking_id_to_cancel,
+					booking.host.clone(),
+					booking.guest.clone(),
+					booking.amount,
+				)?;
+			}
+
+			// Make persistence
+			booking.state = BookingState::Confirmed;
+			<BookingsData<T>>::insert(booking_id, booking);
+			return Ok(*booking_id);
+		}
+		Err(Error::<T>::BookingNotFound.into())
+	}
+
+	fn _reject_booking(
+		sender: <T>::AccountId,
+		booking_id: &<T>::Hash,
+	) -> Result<<T>::Hash, DispatchError> {
 		todo!()
 	}
 
-	fn _reject_booking(booking_id: &<T>::Hash) -> Result<<T>::Hash, DispatchError> {
+	fn _checkin(
+		sender: <T>::AccountId,
+		booking_id: &<T>::Hash,
+	) -> Result<<T>::Hash, DispatchError> {
 		todo!()
 	}
 
-	fn _checkin(booking_id: &<T>::Hash) -> Result<<T>::Hash, DispatchError> {
-		todo!()
-	}
-
-	fn _withdraw_booking(booking_id: &<T>::Hash) -> Result<<T>::Hash, DispatchError> {
+	fn _withdraw_booking(
+		sender: <T>::AccountId,
+		booking_id: &<T>::Hash,
+	) -> Result<<T>::Hash, DispatchError> {
 		todo!()
 	}
 }
@@ -112,6 +156,7 @@ impl<T: Config> Pallet<T> {
 	/// * `place_id` - The identifier of the place to check availability for.
 	/// * `start_date` - The start date of the booking range.
 	/// * `end_date` - The end date of the booking range.
+	/// * `skip_booking_id` - If provided, it omits the booking id in the validation process.
 	///
 	/// # Returns
 	///
@@ -122,6 +167,9 @@ impl<T: Config> Pallet<T> {
 		let place_bookings = Self::get_place_bookings(place_id);
 		for booking_id in place_bookings {
 			if let Some(booking) = Self::get_booking_by_id(booking_id) {
+				if booking.state == BookingState::Created {
+					continue;
+				}
 				match (start_date.cmp(&booking.start_date), end_date.cmp(&booking.end_date)) {
 					(Ordering::Less, Ordering::Greater)
 					| (Ordering::Equal, Ordering::Equal)
@@ -134,6 +182,76 @@ impl<T: Config> Pallet<T> {
 		}
 
 		true
+	}
+
+	fn get_overlapping_bookings(
+		place_id: T::Hash,
+		booking_id_to_confirm: T::Hash,
+		booking_start_date: T::Moment,
+		booking_end_date: T::Moment,
+	) -> Vec<T::Hash> {
+		let mut bookings_to_cancel: Vec<T::Hash> = Vec::new();
+
+		let place_bookings = Self::get_place_bookings(place_id);
+		for booking_id in place_bookings {
+			if booking_id == booking_id_to_confirm {
+				continue;
+			}
+			if let Some(booking) = Self::get_booking_by_id(booking_id) {
+				match (
+					booking_start_date.cmp(&booking.start_date),
+					booking_end_date.cmp(&booking.end_date),
+				) {
+					(Ordering::Less, Ordering::Greater)
+					| (Ordering::Equal, Ordering::Equal)
+					| (Ordering::Greater, Ordering::Less) => {
+						bookings_to_cancel.push(booking_id);
+					},
+					_ => {},
+				}
+			}
+		}
+
+		bookings_to_cancel
+	}
+
+	fn _do_cancel_booking(
+		place_id: T::Hash,
+		booking_id: T::Hash,
+		host: T::AccountId,
+		guest: T::AccountId,
+		amount: BalanceOf<T>,
+	) -> Result<(), DispatchError> {
+		// Make persistance
+		if let Some(mut booking_data) = Self::get_booking_by_id(booking_id) {
+			booking_data.state = BookingState::Rejected;
+			<BookingsData<T>>::insert(booking_id, booking_data);
+		}
+		<BookingsIds<T>>::append(booking_id);
+		<PlaceBookings<T>>::try_mutate(place_id, |booking_list| {
+			if let Some(ind) = booking_list.iter().position(|&bid| bid == booking_id) {
+				booking_list.swap_remove(ind);
+				return Ok(());
+			}
+			Err(())
+		})
+		.map_err(|_| <Error<T>>::BookingNotFound)?;
+		// unlock users funds and store a reference
+		T::Currency::unreserve(&guest, amount);
+		<PendingBookingWithdraws<T>>::mutate(&host, |booking_withdraws| {
+			for (index, tuple) in booking_withdraws.iter().enumerate() {
+				// Check if the first element of the tuple matches the target value
+				if tuple.0 == booking_id {
+					// Perform the swap_remove operation
+					booking_withdraws.swap_remove(index);
+					break;
+				}
+			}
+		});
+		<PendingBookingWithdraws<T>>::mutate(&guest, |booking_withdraws| {
+			booking_withdraws.push((booking_id, amount))
+		});
+		Ok(())
 	}
 
 	/// This function takes a u64 value and calculates its size
