@@ -13,10 +13,10 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// # Arguments
 	///
+	/// * `sender` - The account identifier of the booking sender.
 	/// * `place_id` - The identifier of the place to book.
 	/// * `start_date` - The start date of the booking.
 	/// * `end_date` - The end date of the booking.
-	/// * `sender` - The account identifier of the booking sender.
 	///
 	/// # Returns
 	///
@@ -25,10 +25,10 @@ pub trait BookingsInterface<T: Config> {
 	/// Otherwise, it contains an error indicating the reason for failure.
 	///
 	fn _create_booking(
+		sender: T::AccountId,
 		place_id: T::Hash,
 		start_date: T::Moment,
 		end_date: T::Moment,
-		sender: T::AccountId,
 		amount: BalanceOf<T>,
 	) -> Result<T::Hash, DispatchError>;
 
@@ -42,10 +42,11 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// # Arguments
 	///
+	/// * `sender` - The account identifier of the booking sender.
 	/// * `booking_id` - The identifier of the booking to update.
+	/// * `place_id` - The identifier of the booked place.
 	/// * `start_date` - The updated start date of the booking.
 	/// * `end_date` - The updated end date of the booking.
-	/// * `sender` - The account identifier of the sender requesting the update.
 	///
 	/// # Returns
 	///
@@ -54,10 +55,11 @@ pub trait BookingsInterface<T: Config> {
 	/// indicating the reason for failure.
 	///
 	fn _update_booking(
+		sender: T::AccountId,
 		booking_id: &T::Hash,
+		place_id: &T::Hash,
 		start_date: T::Moment,
 		end_date: T::Moment,
-		sender: T::AccountId,
 	) -> Result<T::Hash, DispatchError>;
 
 	/// Cancel a booking.
@@ -68,8 +70,8 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// # Arguments
 	///
-	/// * `booking_id` - The identifier of the booking to cancel.
 	/// * `sender` - The account identifier of the sender requesting the cancellation.
+	/// * `booking_id` - The identifier of the booking to cancel.
 	///
 	/// # Returns
 	///
@@ -78,8 +80,8 @@ pub trait BookingsInterface<T: Config> {
 	/// an error indicating the reason for failure.
 	///
 	fn _cancel_booking(
-		booking_id: &T::Hash,
 		sender: T::AccountId,
+		booking_id: &T::Hash,
 	) -> Result<T::Hash, DispatchError>;
 
 	/// Confirm a Booking Request.
@@ -90,6 +92,7 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// # Arguments
 	///
+	/// * `sender` - The account identifier of the sender requesting the cancellation.
 	/// * `booking_id` - The identifier of the booking request to be confirmed.
 	///
 	/// # Returns
@@ -98,7 +101,10 @@ pub trait BookingsInterface<T: Config> {
 	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the confirmed booking.
 	/// Otherwise, it contains a `DispatchError` explaining the reason for failure.
 	///
-	fn _confirm_booking(booking_id: &T::Hash) -> Result<T::Hash, DispatchError>;
+	fn _confirm_booking(
+		sender: T::AccountId,
+		booking_id: &T::Hash,
+	) -> Result<T::Hash, DispatchError>;
 
 	/// Reject a Booking Request.
 	///
@@ -108,6 +114,7 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// # Arguments
 	///
+	/// * `sender` - The account identifier of the sender requesting the cancellation.
 	/// * `booking_id` - The identifier of the booking request to be rejected.
 	///
 	/// # Returns
@@ -116,7 +123,10 @@ pub trait BookingsInterface<T: Config> {
 	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the rejected booking.
 	/// Otherwise, it contains a `DispatchError` explaining the reason for failure.
 	///
-	fn _reject_booking(booking_id: &T::Hash) -> Result<T::Hash, DispatchError>;
+	fn _reject_booking(
+		sender: T::AccountId,
+		booking_id: &T::Hash,
+	) -> Result<T::Hash, DispatchError>;
 
 	/// Perform Check-In for a Booking.
 	///
@@ -127,6 +137,7 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// # Arguments
 	///
+	/// * `sender` - The account identifier of the sender requesting the cancellation.
 	/// * `booking_id` - The identifier of the booking for which the check-in is being performed.
 	///
 	/// # Returns
@@ -135,7 +146,7 @@ pub trait BookingsInterface<T: Config> {
 	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the checked-in booking.
 	/// Otherwise, it contains a `DispatchError` explaining the reason for failure.
 	///
-	fn _checkin(booking_id: &T::Hash) -> Result<T::Hash, DispatchError>;
+	fn _checkin(sender: T::AccountId, booking_id: &T::Hash) -> Result<T::Hash, DispatchError>;
 
 	/// Withdraw a Booking.
 	///
@@ -146,6 +157,7 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// # Arguments
 	///
+	/// * `sender` - The account identifier of the sender requesting the cancellation.
 	/// * `booking_id` - The identifier of the booking to be withdrawn.
 	///
 	/// # Returns
@@ -154,5 +166,8 @@ pub trait BookingsInterface<T: Config> {
 	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the withdrawn booking.
 	/// Otherwise, it contains a `DispatchError` explaining the reason for failure.
 	///
-	fn _withdraw_booking(booking_id: &T::Hash) -> Result<T::Hash, DispatchError>;
+	fn _withdraw_booking(
+		sender: T::AccountId,
+		booking_id: &T::Hash,
+	) -> Result<T::Hash, DispatchError>;
 }
