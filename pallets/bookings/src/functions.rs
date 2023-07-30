@@ -279,7 +279,7 @@ impl<T: Config> Pallet<T> {
 			booking_data.state = BookingState::Rejected;
 			<BookingsData<T>>::insert(booking_id, booking_data);
 		}
-		<BookingsIds<T>>::append(booking_id);
+
 		<PlaceBookings<T>>::try_mutate(place_id, |booking_list| {
 			if let Some(ind) = booking_list.iter().position(|&bid| bid == booking_id) {
 				booking_list.swap_remove(ind);
@@ -288,8 +288,9 @@ impl<T: Config> Pallet<T> {
 			Err(())
 		})
 		.map_err(|_| <Error<T>>::BookingNotFound)?;
-		// unlock users funds and store a reference
+
 		T::Currency::unreserve(&guest, amount);
+
 		<PendingBookingWithdraws<T>>::mutate(&host, |booking_withdraws| {
 			for (index, tuple) in booking_withdraws.iter().enumerate() {
 				// Check if the first element of the tuple matches the target value
@@ -300,9 +301,11 @@ impl<T: Config> Pallet<T> {
 				}
 			}
 		});
+
 		<PendingBookingWithdraws<T>>::mutate(&guest, |booking_withdraws| {
 			booking_withdraws.push((booking_id, amount))
 		});
+
 		Ok(())
 	}
 
