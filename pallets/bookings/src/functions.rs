@@ -197,6 +197,26 @@ impl<T: Config> Pallet<T> {
 		true
 	}
 
+	/// Get overlapping bookings for a specified place and booking period.
+	///
+	/// This function retrieves a list of booking identifiers (`Hash`) that overlap with the provided booking period.
+	/// It iterates through the existing bookings associated with the given `place_id` and compares their start and end dates
+	/// with the provided `booking_start_date` and `booking_end_date`. If there is an overlap in the booking periods, the booking
+	/// identifier is added to the list of `bookings_to_cancel`. The `booking_id_to_confirm` is excluded from the overlapping check,
+	/// allowing the booking confirmation without conflict with itself.
+	///
+	/// # Arguments
+	///
+	/// * `place_id` - The unique identifier of the place for which overlapping bookings are to be found.
+	/// * `booking_id_to_confirm` - The unique identifier of the booking to be confirmed, excluded from the overlapping check.
+	/// * `booking_start_date` - The start date of the booking to be confirmed.
+	/// * `booking_end_date` - The end date of the booking to be confirmed.
+	///
+	/// # Returns
+	///
+	/// Returns a vector (`Vec`) of booking identifiers (`Hash`) representing the list of overlapping bookings.
+	/// If no overlapping bookings are found, the vector will be empty.
+	///
 	fn get_overlapping_bookings(
 		place_id: T::Hash,
 		booking_id_to_confirm: T::Hash,
@@ -228,6 +248,25 @@ impl<T: Config> Pallet<T> {
 		bookings_to_cancel
 	}
 
+	/// Perform the cancellation of a booking.
+	///
+	/// This function cancels a specific booking identified by `booking_id`. It updates the booking's status and releases any held funds.
+	/// The cancellation is initiated by the `host` or the `guest`, and the `amount` is returned accordingly.
+	///
+	/// # Arguments
+	///
+	/// * `place_id` - The unique identifier of the place associated with the booking to be canceled.
+	/// * `booking_id` - The unique identifier of the booking to be canceled.
+	/// * `host` - The account identifier of the host initiating the booking cancellation.
+	/// * `guest` - The account identifier of the guest initiating the booking cancellation.
+	/// * `amount` - The payment amount associated with the booking to be canceled.
+	///
+	/// # Returns
+	///
+	/// Returns a `Result` indicating the success or failure of the booking cancellation operation.
+	/// If the operation is successful, the booking is canceled, and the `Result` contains no error.
+	/// If the booking cancellation fails, the `Result` contains a `DispatchError` explaining the reason for failure.
+	///
 	fn _do_cancel_booking(
 		place_id: T::Hash,
 		booking_id: T::Hash,
