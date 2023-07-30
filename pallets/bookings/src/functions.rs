@@ -126,7 +126,19 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 		sender: <T>::AccountId,
 		booking_id: &<T>::Hash,
 	) -> Result<<T>::Hash, DispatchError> {
-		todo!()
+		if let Some(booking) = Self::get_booking_by_id(booking_id) {
+			ensure!(sender == booking.host, Error::<T>::NotPlaceOwner);
+			ensure!(booking.state == BookingState::Created, Error::<T>::WrongState);
+			Self::_do_cancel_booking(
+				booking.place_id,
+				*booking_id,
+				booking.host.clone(),
+				booking.guest.clone(),
+				booking.amount,
+			)?;
+			return Ok(*booking_id);
+		}
+		Err(Error::<T>::BookingNotFound.into())
 	}
 
 	fn _checkin(

@@ -253,7 +253,17 @@ pub mod pallet {
 		#[pallet::call_index(5)]
 		pub fn reject_booking(origin: OriginFor<T>, booking_id: T::Hash) -> DispatchResult {
 			// Check sender
-			todo!();
+			let sender = ensure_signed(origin)?;
+
+			Self::_reject_booking(sender.clone(), &booking_id)?;
+
+			// Deposit our "Rejected" event.
+			Self::deposit_event(Event::BookingUpdated {
+				id: booking_id,
+				sender,
+				state: BookingState::Rejected,
+			});
+			Ok(())
 		}
 
 		/// Perform Check-In for a Confirmed Booking.
