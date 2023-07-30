@@ -225,7 +225,7 @@ pub mod pallet {
 
 			Self::_confirm_booking(sender.clone(), &booking_id)?;
 
-			// Deposit our "Placed" event.
+			// Deposit our "Confirmed" event.
 			Self::deposit_event(Event::BookingUpdated {
 				id: booking_id,
 				sender,
