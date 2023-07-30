@@ -59,11 +59,6 @@ pub mod pallet {
 	pub type PendingBookingWithdraws<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, Vec<(T::Hash, BalanceOf<T>)>, ValueQuery>;
 
-	#[pallet::storage]
-	#[pallet::getter(fn get_pending_deposit_withdraws_by_account)]
-	pub type PendingDepositWithdraws<T: Config> =
-		StorageMap<_, Twox64Concat, T::Hash, Vec<(T::Hash, BalanceOf<T>)>, ValueQuery>;
-
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/main-docs/build/events-errors/
 	#[pallet::event]
