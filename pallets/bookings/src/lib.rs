@@ -131,7 +131,6 @@ pub mod pallet {
 		) -> DispatchResult {
 			// Check sender
 			let sender = ensure_signed(origin)?;
-			ensure!(end_date > start_date, Error::<T>::InvalidDates);
 
 			let booking_id =
 				Self::_create_booking(sender.clone(), place_id, start_date, end_date, amount)?;

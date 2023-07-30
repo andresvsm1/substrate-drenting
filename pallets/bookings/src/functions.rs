@@ -24,6 +24,7 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 		end_date: T::Moment,
 		amount: BalanceOf<T>,
 	) -> Result<T::Hash, DispatchError> {
+		ensure!(end_date > start_date, Error::<T>::InvalidDates);
 		if let Some(place) = pallet_places::Pallet::<T>::get_place_by_id(place_id) {
 			ensure!(T::Currency::can_reserve(&sender, amount), Error::<T>::NotEnoughFreeBalance);
 			ensure!(&place.owner != &sender, Error::<T>::CannotBookOwnedPlace);
