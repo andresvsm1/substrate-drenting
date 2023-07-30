@@ -315,7 +315,17 @@ pub mod pallet {
 		#[pallet::call_index(7)]
 		pub fn withdraw_booking(origin: OriginFor<T>, booking_id: T::Hash) -> DispatchResult {
 			// Check sender
-			todo!();
+			let sender = ensure_signed(origin)?;
+
+			Self::_withdraw_booking(sender.clone(), &booking_id)?;
+
+			// Deposit our "Completed" event.
+			Self::deposit_event(Event::BookingUpdated {
+				id: booking_id,
+				sender,
+				state: BookingState::Completed,
+			});
+			Ok(())
 		}
 	}
 }

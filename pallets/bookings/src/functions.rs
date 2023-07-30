@@ -10,7 +10,7 @@ use frame_support::{
 	ensure,
 	sp_runtime::{traits::Hash, ArithmeticError, DispatchError},
 	sp_std::{cmp::Ordering, vec::Vec},
-	traits::ReservableCurrency,
+	traits::{tokens::ExistenceRequirement, Currency, ReservableCurrency},
 };
 use pallet_places::Error as PlacesError;
 
@@ -164,7 +164,17 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 		sender: <T>::AccountId,
 		booking_id: &<T>::Hash,
 	) -> Result<<T>::Hash, DispatchError> {
-		todo!()
+		if let Some(booking) = Self::get_booking_by_id(booking_id) {
+			return match booking.state {
+				BookingState::Confirmed => todo!(), // Check dates to see if its unused
+				BookingState::Rejected => todo!(),  // Only guest should be able to claim the funds
+				BookingState::Withdrawable => todo!(), // Check Refund Policy
+				BookingState::UserCanWithdraw => todo!(), // Unreserve funds for guest
+				BookingState::OwnerCanWithdraw => Self::host_withdraw_booking(sender, booking_id), // Transfer reserved funds from guest to host
+				_ => return Err(Error::<T>::WrongState.into()),
+			};
+		}
+		Err(Error::<T>::BookingNotFound.into())
 	}
 }
 
@@ -470,5 +480,51 @@ impl<T: Config> Pallet<T> {
 			.unwrap();
 
 		Ok(Self::convert_u64_to_moment(formatted_timestamp.try_into().unwrap())?)
+	}
+
+	fn host_withdraw_booking(
+		sender: <T>::AccountId,
+		booking_id: &T::Hash,
+	) -> Result<T::Hash, DispatchError> {
+		if let Some(mut booking_data) = Self::get_booking_by_id(booking_id) {
+			ensure!(sender == booking_data.host, Error::<T>::NotPlaceOwner);
+
+			// Try to withdraw first
+			T::Currency::unreserve(&booking_data.guest, booking_data.amount);
+			T::Currency::transfer(
+				&booking_data.host,
+				&booking_data.guest,
+				booking_data.amount,
+				ExistenceRequirement::KeepAlive,
+			)?;
+
+			// Now persist new state
+			<PendingBookingWithdraws<T>>::mutate(&booking_data.host, |booking_withdraws| {
+				for (index, tuple) in booking_withdraws.iter().enumerate() {
+					// Check if the first element of the tuple matches the target value
+					if tuple.0 == *booking_id {
+						// Perform the swap_remove operation
+						booking_withdraws.swap_remove(index);
+						break;
+					}
+				}
+			});
+
+			<PlaceBookings<T>>::try_mutate(&booking_data.place_id, |booking_list| {
+				if let Some(ind) = booking_list.iter().position(|&bid| bid == *booking_id) {
+					booking_list.swap_remove(ind);
+					return Ok(());
+				}
+				Err(())
+			})
+			.map_err(|_| <Error<T>>::BookingNotFound)?;
+
+			booking_data.state = BookingState::Completed;
+			<BookingsData<T>>::insert(booking_id, booking_data);
+
+			return Ok((*booking_id));
+		}
+
+		Err(Error::<T>::BookingNotFound.into())
 	}
 }
