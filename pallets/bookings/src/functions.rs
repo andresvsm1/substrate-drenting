@@ -146,7 +146,18 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 		sender: <T>::AccountId,
 		booking_id: &<T>::Hash,
 	) -> Result<<T>::Hash, DispatchError> {
-		todo!()
+		if let Some(mut booking) = Self::get_booking_by_id(booking_id) {
+			ensure!(sender == booking.guest, Error::<T>::NotPlaceGuest);
+			ensure!(booking.state == BookingState::Confirmed, Error::<T>::WrongState);
+			// For production, check start time is correct
+
+			// Make persistence
+			booking.state = BookingState::OwnerCanWithdraw;
+			<BookingsData<T>>::insert(booking_id, booking);
+
+			return Ok(*booking_id);
+		}
+		Err(Error::<T>::BookingNotFound.into())
 	}
 
 	fn _withdraw_booking(

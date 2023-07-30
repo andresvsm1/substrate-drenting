@@ -93,6 +93,8 @@ pub mod pallet {
 		InvalidStartDate,
 		/// Not Place Owner
 		NotPlaceOwner,
+		/// Not Place Guest
+		NotPlaceGuest,
 		/// State is not correct
 		WrongState,
 		/// Cannot confirm booking. Booking is outdated
@@ -279,7 +281,17 @@ pub mod pallet {
 		#[pallet::call_index(6)]
 		pub fn checkin(origin: OriginFor<T>, booking_id: T::Hash) -> DispatchResult {
 			// Check sender
-			todo!();
+			let sender = ensure_signed(origin)?;
+
+			Self::_checkin(sender.clone(), &booking_id)?;
+
+			// Deposit our "OwnerCanWithdraw" event.
+			Self::deposit_event(Event::BookingUpdated {
+				id: booking_id,
+				sender,
+				state: BookingState::OwnerCanWithdraw,
+			});
+			Ok(())
 		}
 
 		/// Withdraw a Booking, Canceling the Reservation and Releasing the Funds.
