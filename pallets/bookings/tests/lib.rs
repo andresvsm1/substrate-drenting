@@ -104,8 +104,6 @@ fn test_create_booking_should_work() {
 		let end_date = 1697354449;
 		let amount = 10;
 
-		// let place_data = Places::get_place_by_id(place_id);
-		// println!("{:?}", place_data);
 		assert_ok!(Bookings::create_booking(
 			RuntimeOrigin::signed(1),
 			place_id,
