@@ -67,11 +67,6 @@ impl pallet_timestamp::Config for Test {
 	type WeightInfo = ();
 }
 
-parameter_types! {
-  pub const MaxRemovesAllowed: u32 = 5;
-  pub const MaxMigrationsAllowed: u32 = 5;
-}
-
 impl pallet_places::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 }
