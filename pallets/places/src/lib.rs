@@ -70,6 +70,10 @@ pub mod pallet {
 		PlaceAlreadyExists,
 		/// Place does not exists
 		PlaceNotFound,
+		/// Hour provided cannot be less than 0 or greater than 23
+		BadHoursProvided,
+		/// Checkout hour cannot be greater than checkin hour
+		CheckoutHourCannotBeGreaterThanCheckinHour,
 	}
 
 	#[pallet::call]
@@ -171,7 +175,7 @@ pub mod pallet {
 			// Check sender
 			let sender = ensure_signed(origin)?;
 
-			let place_id = Self::_remove_place(&place_id)?;
+			Self::_remove_place(&place_id)?;
 
 			// Deposit our "Removed" event.
 			Self::deposit_event(Event::PlaceRemoved { id: place_id, sender });

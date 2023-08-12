@@ -23,6 +23,8 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 		number_of_floors: Option<u8>,
 		sender: &T::AccountId,
 	) -> Result<T::Hash, Error<T>> {
+		Self::ensure_checkin_checkout_hours_are_correct(checkin_hour, checkout_hour)?;
+
 		// Create a new place
 		let place_data: PlaceData<T> = PlaceData::new(
 			place_type,
@@ -84,13 +86,18 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 				place_data.price_per_night = new_ppn;
 			}
 
-			if let Some(cih) =  checkin_hour {
+			if let Some(cih) = checkin_hour {
 				place_data.checkin_hour = cih;
 			}
 
-			if let Some(coh) =  checkout_hour {
+			if let Some(coh) = checkout_hour {
 				place_data.checkout_hour = coh;
 			}
+
+			Self::ensure_checkin_checkout_hours_are_correct(
+				place_data.checkin_hour,
+				place_data.checkout_hour,
+			)?;
 
 			if let Some(new_images) = images {
 				let new_images_set: BTreeSet<T::Hash> = new_images.into_iter().collect();
@@ -129,5 +136,22 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 			return Ok(*place_id);
 		}
 		Err(Error::<T>::PlaceNotFound)
+	}
+}
+
+/// Auxiliar functions implementation
+impl<T: Config> Pallet<T> {
+	fn ensure_checkin_checkout_hours_are_correct(
+		checkin_hour: u32,
+		checkout_hour: u32,
+	) -> Result<(), Error<T>> {
+		ensure!(
+			checkin_hour > checkout_hour,
+			Error::<T>::CheckoutHourCannotBeGreaterThanCheckinHour
+		);
+		ensure!(checkin_hour > 0 && checkin_hour <= 23, Error::<T>::BadHoursProvided);
+		ensure!(checkout_hour > 0 && checkout_hour <= 23, Error::<T>::BadHoursProvided);
+
+		Ok(())
 	}
 }
