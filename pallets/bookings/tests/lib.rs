@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod mock;
 use frame_support::{assert_noop, assert_ok};
-use pallet_bookings::{BookingData, BookingState};
+use pallet_bookings::{BookingData, BookingState, Error};
 use pallet_places::PlaceType;
 
 use crate::mock::*;
@@ -27,10 +27,6 @@ fn create_demo_place() {
 		vec![create_hash("image_1"), create_hash("image_2")],
 		None,
 	);
-}
-
-fn build_with_funded_accounts() -> sp_io::TestExternalities {
-	build_with_default_config(vec![(1, *b"123456789012345a")])
 }
 
 fn build_with_defult_place() -> sp_io::TestExternalities {
@@ -132,6 +128,80 @@ fn test_create_booking_should_work() {
 				amount,
 				state: BookingState::Created
 			})
+		);
+	})
+}
+
+#[test]
+fn test_create_booking_with_invalid_dates_should_fail() {
+	build_with_defult_place().execute_with(|| {
+		let place_id = Places::get_all_places()[0];
+
+		let start_date = 1696922449;
+		let end_date = 1697354449;
+		let amount = 10;
+
+		assert_noop!(
+			Bookings::create_booking(
+				RuntimeOrigin::signed(1),
+				place_id,
+				end_date,
+				start_date,
+				amount
+			),
+			Error::<Test>::InvalidDates
+		);
+	})
+}
+
+#[test]
+fn test_create_booking_without_funds_should_fail() {
+	build_with_defult_place().execute_with(|| {
+		let place_id = Places::get_all_places()[0];
+
+		let start_date = 1696922449;
+		let end_date = 1697354449;
+		let amount = 10;
+
+		assert_noop!(
+			Bookings::create_booking(
+				RuntimeOrigin::signed(3), // This account has no balance
+				place_id,
+				start_date,
+				end_date,
+				amount
+			),
+			Error::<Test>::NotEnoughFreeBalance
+		);
+	})
+}
+
+#[test]
+fn test_create_booking_in_owned_place_should_fail() {
+	build_with_defult_place().execute_with(|| {
+		let place_id = Places::get_all_places()[0];
+		let place_data = Places::get_place_by_id(place_id).unwrap();
+
+		let start_date = 1696922449;
+		let end_date = 1697354449;
+		let amount = 10;
+
+		let current_time = Bookings::modify_timestamp(start_date, place_data.checkin_hour).unwrap();
+
+		// Set current chain time to the expected start_date + 1
+		<pallet_places::pallet_timestamp::Pallet<Test>>::set_timestamp(current_time + 1);
+		// Advance one block to update chain now() time
+		setup_blocks(1);
+
+		assert_noop!(
+			Bookings::create_booking(
+				RuntimeOrigin::signed(1),
+				place_id,
+				start_date,
+				end_date,
+				amount
+			),
+			Error::<Test>::InvalidStartDate
 		);
 	})
 }

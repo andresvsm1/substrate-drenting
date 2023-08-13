@@ -1,5 +1,4 @@
 #![cfg(test)]
-// Still pending to fix, for some reason it is not compiling propperly
 use frame_support::{parameter_types, traits::ConstU32};
 use pallet_bookings;
 use pallet_places::pallet_timestamp;
@@ -9,6 +8,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Header as _, IdentityLookup},
 	BuildStorage,
 };
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -113,6 +113,14 @@ pub fn build_with_default_config(users: Vec<(u64, [u8; 16])>) -> sp_io::TestExte
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
 	ext
+}
+
+pub fn build_with_funded_accounts() -> sp_io::TestExternalities {
+	build_with_default_config(vec![
+		(0, *b"123456789012345a"),
+		(1, *b"123456789012345a"),
+		(2, *b"123456789012345a"),
+	])
 }
 
 pub fn setup_blocks(blocks: u64) {
