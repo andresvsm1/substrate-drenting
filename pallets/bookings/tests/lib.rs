@@ -110,7 +110,7 @@ fn test_modify_timestamp_function() {
 }
 
 // ========================================================
-// Bookings Unit Tests
+// Create Bookings Unit Tests
 // ========================================================
 #[test]
 fn test_create_booking_should_work() {
@@ -129,7 +129,7 @@ fn test_create_booking_should_work() {
 		let amount = 10;
 
 		assert_ok!(Bookings::create_booking(
-			RuntimeOrigin::signed(1),
+			RuntimeOrigin::signed(GUEST_A),
 			place_id,
 			start_date,
 			end_date,
@@ -161,6 +161,34 @@ fn test_create_booking_should_work() {
 }
 
 #[test]
+fn test_create_booking_with_invalid_place_should_fail() {
+	build_with_defult_place().execute_with(|| {
+		let year = 2025;
+		let month = 4;
+		let start_day = 10;
+		let end_day = 13;
+
+		let start_date: u64 = generate_timestamp_millis(year, month, start_day, 17, 33, 44);
+		let end_date: u64 = generate_timestamp_millis(year, month, end_day, 17, 33, 44);
+
+		let amount = 10;
+
+		let place_id = create_hash("dummy");
+
+		assert_noop!(
+			Bookings::create_booking(
+				RuntimeOrigin::signed(GUEST_A),
+				place_id,
+				start_date,
+				end_date,
+				amount
+			),
+			PlaceError::<Test>::PlaceNotFound
+		);
+	})
+}
+
+#[test]
 fn test_create_booking_with_invalid_dates_should_fail() {
 	build_with_defult_place().execute_with(|| {
 		let place_id = Places::get_all_places()[0];
@@ -176,7 +204,7 @@ fn test_create_booking_with_invalid_dates_should_fail() {
 
 		assert_noop!(
 			Bookings::create_booking(
-				RuntimeOrigin::signed(1),
+				RuntimeOrigin::signed(GUEST_A),
 				place_id,
 				end_date, // switched dates
 				start_date,
@@ -230,7 +258,7 @@ fn test_create_booking_in_owned_place_should_fail() {
 
 		assert_noop!(
 			Bookings::create_booking(
-				RuntimeOrigin::signed(0),
+				RuntimeOrigin::signed(OWNER),
 				place_id,
 				start_date,
 				end_date,
@@ -265,7 +293,7 @@ fn test_create_booking_with_outdated_start_day_should_fail() {
 
 		assert_noop!(
 			Bookings::create_booking(
-				RuntimeOrigin::signed(1),
+				RuntimeOrigin::signed(GUEST_A),
 				place_id,
 				start_date,
 				end_date,
