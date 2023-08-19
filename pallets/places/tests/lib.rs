@@ -14,7 +14,7 @@ fn create_hash(data: &str) -> H256 {
 	H256::from_slice(&array)
 }
 
-fn create_demo_place() {
+fn create_default_place() {
 	let _ = Places::create_place(
 		RuntimeOrigin::signed(1),
 		PlaceType::Apartment,
@@ -31,7 +31,7 @@ fn create_demo_place() {
 
 fn build_with_demo_place() -> sp_io::TestExternalities {
 	let mut ext = build_with_default_config();
-	ext.execute_with(create_demo_place);
+	ext.execute_with(create_default_place);
 	ext
 }
 

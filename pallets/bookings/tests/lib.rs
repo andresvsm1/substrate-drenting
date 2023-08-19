@@ -8,9 +8,14 @@ use pallet_places::PlaceType;
 use crate::mock::*;
 use crate::utils::*;
 
-fn create_demo_place() {
+// Default owner
+const OWNER: u64 = 0;
+const GUEST_A: u64 = 1;
+const GUEST_B: u64 = 2;
+
+fn create_default_place() {
 	let _ = Places::create_place(
-		RuntimeOrigin::signed(0),
+		RuntimeOrigin::signed(OWNER),
 		PlaceType::Apartment,
 		b"Demo Place".to_vec(),
 		b"Demo Address".to_vec(),
@@ -25,7 +30,9 @@ fn create_demo_place() {
 
 fn build_with_defult_place() -> sp_io::TestExternalities {
 	let mut ext = build_with_funded_accounts();
-	ext.execute_with(create_demo_place);
+	ext.execute_with(create_default_place);
+	ext
+}
 	ext
 }
 
