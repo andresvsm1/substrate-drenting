@@ -460,7 +460,7 @@ impl<T: Config> Pallet<T> {
 	/// If the `desired_time` is out of range or any other error occurs during the conversion, the `Result`
 	/// contains a `DispatchError` explaining the reason for the failure.
 	///
-	fn modify_timestamp(
+	pub fn modify_timestamp(
 		timestamp: T::Moment,
 		desired_time: u32,
 	) -> Result<T::Moment, DispatchError> {
