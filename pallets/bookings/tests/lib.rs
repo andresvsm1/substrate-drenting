@@ -2,8 +2,10 @@
 pub mod mock;
 pub mod utils;
 use frame_support::{assert_noop, assert_ok};
+use pallet_bookings::BookingsData;
 use pallet_bookings::{BookingData, BookingState, Error};
-use pallet_places::PlaceType;
+use pallet_places::{Error as PlaceError, PlaceType};
+use sp_core::H256;
 
 use crate::mock::*;
 use crate::utils::*;
@@ -28,11 +30,36 @@ fn create_default_place() {
 	);
 }
 
+fn create_default_booking() {
+	let year = 2025;
+	let month = 4;
+	let start_day = 10;
+	let end_day = 13;
+	let start_date: u64 = generate_timestamp(year, month, start_day, 17, 33, 44);
+	let end_date: u64 = generate_timestamp(year, month, end_day, 17, 33, 44);
+
+	let amount = 10;
+
+	let place_id = Places::get_all_places()[0];
+
+	let _ = Bookings::create_booking(
+		RuntimeOrigin::signed(GUEST_A),
+		place_id,
+		start_date,
+		end_date,
+		amount,
+	);
+}
+
 fn build_with_defult_place() -> sp_io::TestExternalities {
 	let mut ext = build_with_funded_accounts();
 	ext.execute_with(create_default_place);
 	ext
 }
+
+fn build_with_defult_place_and_booking() -> sp_io::TestExternalities {
+	let mut ext = build_with_defult_place();
+	ext.execute_with(create_default_booking);
 	ext
 }
 
@@ -300,6 +327,78 @@ fn test_create_booking_with_outdated_start_day_should_fail() {
 				amount
 			),
 			Error::<Test>::InvalidStartDate
+		);
+	})
+}
+
+// ========================================================
+// Confirm Bookings Unit Tests
+// ========================================================
+#[test]
+fn test_confirm_booking_should_work() {
+	build_with_defult_place_and_booking().execute_with(|| {
+		let booking_id: H256 = Bookings::get_all_bookings()[0];
+
+		assert_ok!(Bookings::confirm_booking(RuntimeOrigin::signed(OWNER), booking_id));
+
+		let booking_data = Bookings::get_booking_by_id(booking_id).unwrap();
+		assert_eq!(booking_data.state, BookingState::Confirmed);
+	})
+}
+
+#[test]
+fn test_confirm_missing_booking_should_fail() {
+	build_with_funded_accounts().execute_with(|| {
+		let booking_id: H256 = create_hash("dummy");
+
+		assert_noop!(
+			Bookings::confirm_booking(RuntimeOrigin::signed(GUEST_A), booking_id),
+			Error::<Test>::BookingNotFound
+		);
+	})
+}
+
+#[test]
+fn test_confirm_booking_not_owner_should_fail() {
+	build_with_defult_place_and_booking().execute_with(|| {
+		let booking_id: H256 = Bookings::get_all_bookings()[0];
+
+		assert_noop!(
+			Bookings::confirm_booking(RuntimeOrigin::signed(GUEST_A), booking_id),
+			Error::<Test>::NotPlaceOwner
+		);
+	})
+}
+
+#[test]
+fn test_confirm_booking_with_wrong_state_should_fail() {
+	build_with_defult_place_and_booking().execute_with(|| {
+		let booking_id: H256 = Bookings::get_all_bookings()[0];
+		let mut booking_data: BookingData<Test> = Bookings::get_booking_by_id(booking_id).unwrap();
+		booking_data.state = BookingState::Confirmed; // state != Created
+		BookingsData::insert(booking_id, booking_data);
+
+		assert_noop!(
+			Bookings::confirm_booking(RuntimeOrigin::signed(OWNER), booking_id),
+			Error::<Test>::WrongState
+		);
+	})
+}
+
+#[test]
+fn test_confirm_outdated_booking_should_fail() {
+	build_with_defult_place_and_booking().execute_with(|| {
+		let booking_id: H256 = Bookings::get_all_bookings()[0];
+		let booking_data: BookingData<Test> = Bookings::get_booking_by_id(booking_id).unwrap();
+
+		// Set current chain time to the expected start_date + 1
+		<pallet_places::pallet_timestamp::Pallet<Test>>::set_timestamp(booking_data.start_date + 1);
+		// Advance one block to update chain now() time
+		setup_blocks(1);
+
+		assert_noop!(
+			Bookings::confirm_booking(RuntimeOrigin::signed(OWNER), booking_id),
+			Error::<Test>::CannotConfirmOutdatedBooking
 		);
 	})
 }
