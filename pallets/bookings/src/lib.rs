@@ -99,6 +99,8 @@ pub mod pallet {
 		WrongState,
 		/// Cannot confirm booking. Booking is outdated
 		CannotConfirmOutdatedBooking,
+		/// Cannot checkin yet
+		CheckinNotAvailableYet,
 	}
 
 	#[pallet::call]

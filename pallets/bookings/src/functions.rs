@@ -150,7 +150,8 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 			ensure!(sender == booking.guest, Error::<T>::NotPlaceGuest);
 			ensure!(booking.state == BookingState::Confirmed, Error::<T>::WrongState);
 			// For production, check start time is correct
-
+			let current_moment = <pallet_places::pallet_timestamp::Pallet<T>>::now();
+			ensure!(current_moment >= booking.start_date, Error::<T>::CheckinNotAvailableYet);
 			// Make persistence
 			booking.state = BookingState::OwnerCanWithdraw;
 			<BookingsData<T>>::insert(booking_id, booking);
