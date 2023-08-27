@@ -38,9 +38,9 @@ fn create_default_booking() {
 	let start_date: u64 = generate_timestamp(year, month, start_day, 17, 33, 44);
 	let end_date: u64 = generate_timestamp(year, month, end_day, 17, 33, 44);
 
-	let amount = 10;
+	let amount: u64 = 10;
 
-	let place_id = Places::get_all_places()[0];
+	let place_id: H256 = Places::get_all_places()[0];
 
 	let _ = Bookings::create_booking(
 		RuntimeOrigin::signed(GUEST_A),
@@ -49,6 +49,11 @@ fn create_default_booking() {
 		end_date,
 		amount,
 	);
+}
+
+fn confirm_default_booking() {
+	let booking_id: H256 = Bookings::get_all_bookings()[0];
+	let _ = Bookings::confirm_booking(RuntimeOrigin::signed(OWNER), booking_id);
 }
 
 fn build_with_defult_place() -> sp_io::TestExternalities {
@@ -60,6 +65,12 @@ fn build_with_defult_place() -> sp_io::TestExternalities {
 fn build_with_defult_place_and_booking() -> sp_io::TestExternalities {
 	let mut ext = build_with_defult_place();
 	ext.execute_with(create_default_booking);
+	ext
+}
+
+fn build_with_default_confirmed_booking() -> sp_io::TestExternalities {
+	let mut ext = build_with_defult_place_and_booking();
+	ext.execute_with(confirm_default_booking);
 	ext
 }
 
@@ -142,7 +153,7 @@ fn test_modify_timestamp_function() {
 #[test]
 fn test_create_booking_should_work() {
 	build_with_defult_place().execute_with(|| {
-		let place_id = Places::get_all_places()[0];
+		let place_id: H256 = Places::get_all_places()[0];
 		let place_data = Places::get_place_by_id(place_id).unwrap();
 
 		let year = 2025;
@@ -198,7 +209,7 @@ fn test_create_booking_with_invalid_place_should_fail() {
 		let start_date: u64 = generate_timestamp_millis(year, month, start_day, 17, 33, 44);
 		let end_date: u64 = generate_timestamp_millis(year, month, end_day, 17, 33, 44);
 
-		let amount = 10;
+		let amount: u64 = 10;
 
 		let place_id = create_hash("dummy");
 
@@ -399,6 +410,52 @@ fn test_confirm_outdated_booking_should_fail() {
 		assert_noop!(
 			Bookings::confirm_booking(RuntimeOrigin::signed(OWNER), booking_id),
 			Error::<Test>::CannotConfirmOutdatedBooking
+		);
+	})
+}
+
+// ========================================================
+// Checkin Bookings Unit Tests
+// ========================================================
+#[test]
+fn test_checkin_confirmed_booking_should_work() {
+	build_with_default_confirmed_booking().execute_with(|| {
+		let booking_id: H256 = Bookings::get_all_bookings()[0];
+		let booking_data: BookingData<Test> = Bookings::get_booking_by_id(booking_id).unwrap();
+
+		// Set current chain time to the expected start_date + 1 ot enable the checkin
+		<pallet_places::pallet_timestamp::Pallet<Test>>::set_timestamp(booking_data.start_date + 1);
+		assert_ok!(Bookings::checkin(RuntimeOrigin::signed(GUEST_A), booking_id));
+
+		// Retrieve latest state
+		let booking_data: BookingData<Test> = Bookings::get_booking_by_id(booking_id).unwrap();
+		assert_eq!(booking_data.state, BookingState::OwnerCanWithdraw);
+	})
+}
+
+#[test]
+fn test_checkin_booking_with_wrong_guest_should_fail() {
+	build_with_default_confirmed_booking().execute_with(|| {
+		let booking_id: H256 = Bookings::get_all_bookings()[0];
+		let booking_data: BookingData<Test> = Bookings::get_booking_by_id(booking_id).unwrap();
+
+		// Set current chain time to the expected start_date + 1 ot enable the checkin
+		<pallet_places::pallet_timestamp::Pallet<Test>>::set_timestamp(booking_data.start_date + 1);
+		assert_noop!(
+			Bookings::checkin(RuntimeOrigin::signed(GUEST_B), booking_id),
+			Error::<Test>::NotPlaceGuest
+		);
+	})
+}
+
+#[test]
+fn test_checkin_booking_earlier_should_fail() {
+	build_with_default_confirmed_booking().execute_with(|| {
+		let booking_id: H256 = Bookings::get_all_bookings()[0];
+
+		assert_noop!(
+			Bookings::checkin(RuntimeOrigin::signed(GUEST_A), booking_id),
+			Error::<Test>::CheckinNotAvailableYet
 		);
 	})
 }
