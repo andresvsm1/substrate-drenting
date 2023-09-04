@@ -1,14 +1,12 @@
 #[cfg(test)]
 pub mod mock;
 pub mod utils;
-use frame_support::{assert_noop, assert_ok};
-use pallet_bookings::BookingsData;
-use pallet_bookings::{BookingData, BookingState, Error};
+use frame_support::{assert_noop, assert_ok, traits::Currency};
+use pallet_bookings::{BookingData, BookingState, BookingsData, Error};
 use pallet_places::{Error as PlaceError, PlaceType};
 use sp_core::H256;
 
-use crate::mock::*;
-use crate::utils::*;
+use crate::{mock::*, utils::*};
 
 // Default owner
 const OWNER: u64 = 0;
@@ -475,5 +473,39 @@ fn test_checkin_booking_earlier_should_fail() {
 			Bookings::checkin(RuntimeOrigin::signed(GUEST_A), booking_id),
 			Error::<Test>::CheckinNotAvailableYet
 		);
+	})
+}
+
+// ========================================================
+// Withdrawals Unit Tests
+// ========================================================
+#[test]
+fn test_withdraw_checked_in_booking_should_work() {
+	// Caller: OWNER
+	build_with_default_confirmed_booking().execute_with(|| {
+		let place_id = Places::get_all_places()[0];
+		let booking_id: H256 = Bookings::get_all_bookings()[0];
+		let booking_data: BookingData<Test> = Bookings::get_booking_by_id(booking_id).unwrap();
+
+		// Set current chain time to the expected start_date + 1 ot enable the checkin
+		<pallet_places::pallet_timestamp::Pallet<Test>>::set_timestamp(booking_data.start_date + 1);
+		assert_ok!(Bookings::checkin(RuntimeOrigin::signed(GUEST_A), booking_id));
+
+		// As the owner, withdraw the booking
+		assert_ok!(Bookings::withdraw_booking(RuntimeOrigin::signed(OWNER), booking_id));
+
+		// Retrieve latest state
+		let booking_data: BookingData<Test> = Bookings::get_booking_by_id(booking_id).unwrap();
+		assert_eq!(booking_data.state, BookingState::Completed);
+
+		// Check OWNER has successfully withdrawed the funds
+		assert_eq!(Balances::total_balance(&OWNER), BASE_TOKEN_AMOUNT + booking_data.amount);
+		// Check GUEST_A has less funds
+		assert_eq!(Balances::total_balance(&GUEST_A), BASE_TOKEN_AMOUNT - booking_data.amount);
+
+		// Check structs have been updated correctly
+		assert_eq!(Bookings::get_place_bookings(booking_id), vec![]);
+		assert_eq!(Bookings::get_pending_booking_withdraws_by_account(OWNER), vec![]);
+		assert_eq!(Bookings::get_place_bookings(place_id), vec![]);
 	})
 }
