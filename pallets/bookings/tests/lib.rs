@@ -38,9 +38,11 @@ fn create_default_booking() {
 	let start_date: u64 = generate_timestamp(year, month, start_day, 17, 33, 44);
 	let end_date: u64 = generate_timestamp(year, month, end_day, 17, 33, 44);
 
-	let amount: u64 = 10;
-
 	let place_id: H256 = Places::get_all_places()[0];
+	let place_data = Places::get_place_by_id(place_id).unwrap();
+
+	let n_days = end_day - start_day;
+	let amount = (n_days as u64) * place_data.price_per_night;
 
 	let _ = Bookings::create_booking(
 		RuntimeOrigin::signed(GUEST_A),
@@ -164,7 +166,8 @@ fn test_create_booking_should_work() {
 		let start_date: u64 = generate_timestamp_millis(year, month, start_day, 17, 33, 44);
 		let end_date: u64 = generate_timestamp_millis(year, month, end_day, 17, 33, 44);
 
-		let amount = 10;
+		let n_days = end_day - start_day;
+		let amount = (n_days as u64) * place_data.price_per_night;
 
 		assert_ok!(Bookings::create_booking(
 			RuntimeOrigin::signed(GUEST_A),
@@ -195,6 +198,10 @@ fn test_create_booking_should_work() {
 				state: BookingState::Created
 			})
 		);
+
+		// Check GUEST funds have been locked
+		let reserved_balances = Balances::reserved_balance(&GUEST_A);
+		assert_eq!(reserved_balances, amount);
 	})
 }
 
@@ -230,6 +237,7 @@ fn test_create_booking_with_invalid_place_should_fail() {
 fn test_create_booking_with_invalid_dates_should_fail() {
 	build_with_defult_place().execute_with(|| {
 		let place_id = Places::get_all_places()[0];
+		let place_data = Places::get_place_by_id(place_id).unwrap();
 
 		let year = 2025;
 		let month = 4;
@@ -238,7 +246,9 @@ fn test_create_booking_with_invalid_dates_should_fail() {
 
 		let start_date: u64 = generate_timestamp_millis(year, month, start_day, 17, 33, 44);
 		let end_date: u64 = generate_timestamp_millis(year, month, end_day, 17, 33, 44);
-		let amount = 10;
+
+		let n_days = end_day - start_day;
+		let amount = (n_days as u64) * place_data.price_per_night;
 
 		assert_noop!(
 			Bookings::create_booking(
@@ -257,6 +267,7 @@ fn test_create_booking_with_invalid_dates_should_fail() {
 fn test_create_booking_without_funds_should_fail() {
 	build_with_defult_place().execute_with(|| {
 		let place_id = Places::get_all_places()[0];
+		let place_data = Places::get_place_by_id(place_id).unwrap();
 
 		let year = 2025;
 		let month = 4;
@@ -265,7 +276,9 @@ fn test_create_booking_without_funds_should_fail() {
 
 		let start_date: u64 = generate_timestamp_millis(year, month, start_day, 17, 33, 44);
 		let end_date: u64 = generate_timestamp_millis(year, month, end_day, 17, 33, 44);
-		let amount = 10;
+
+		let n_days = end_day - start_day;
+		let amount = (n_days as u64) * place_data.price_per_night;
 
 		assert_noop!(
 			Bookings::create_booking(
@@ -284,6 +297,7 @@ fn test_create_booking_without_funds_should_fail() {
 fn test_create_booking_in_owned_place_should_fail() {
 	build_with_defult_place().execute_with(|| {
 		let place_id = Places::get_all_places()[0];
+		let place_data = Places::get_place_by_id(place_id).unwrap();
 
 		let year = 2025;
 		let month = 4;
@@ -292,7 +306,9 @@ fn test_create_booking_in_owned_place_should_fail() {
 
 		let start_date: u64 = generate_timestamp_millis(year, month, start_day, 17, 33, 44);
 		let end_date: u64 = generate_timestamp_millis(year, month, end_day, 17, 33, 44);
-		let amount = 10;
+
+		let n_days = end_day - start_day;
+		let amount = (n_days as u64) * place_data.price_per_night;
 
 		assert_noop!(
 			Bookings::create_booking(
@@ -320,7 +336,9 @@ fn test_create_booking_with_outdated_start_day_should_fail() {
 
 		let start_date: u64 = generate_timestamp_millis(year, month, start_day, 17, 33, 44);
 		let end_date: u64 = generate_timestamp_millis(year, month, end_day, 17, 33, 44);
-		let amount = 10;
+
+		let n_days = end_day - start_day;
+		let amount = (n_days as u64) * place_data.price_per_night;
 
 		let current_time = Bookings::modify_timestamp(start_date, place_data.checkin_hour).unwrap();
 

@@ -5,10 +5,10 @@ use crate::{
 	BalanceOf, BookingState, BookingsData, BookingsIds, Config, Error, Pallet,
 	PendingBookingWithdraws, PlaceBookings,
 };
-use chrono::{DateTime, NaiveDateTime, Timelike, Utc};
+use chrono::{DateTime, Duration, NaiveDateTime, Timelike, Utc};
 use frame_support::{
 	ensure,
-	sp_runtime::{traits::Hash, ArithmeticError, DispatchError},
+	sp_runtime::{traits::Hash, ArithmeticError, DispatchError, SaturatedConversion},
 	sp_std::{cmp::Ordering, vec::Vec},
 	traits::{tokens::ExistenceRequirement, Currency, ReservableCurrency},
 };
@@ -26,7 +26,6 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 	) -> Result<T::Hash, DispatchError> {
 		ensure!(end_date > start_date, Error::<T>::InvalidDates);
 		if let Some(place) = pallet_places::Pallet::<T>::get_place_by_id(place_id) {
-			ensure!(T::Currency::can_reserve(&sender, amount), Error::<T>::NotEnoughFreeBalance);
 			ensure!(&place.owner != &sender, Error::<T>::CannotBookOwnedPlace);
 
 			let formatted_start_date = Self::modify_timestamp(start_date, place.checkin_hour)?;
@@ -36,8 +35,23 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 			ensure!(formatted_start_date > current_moment, Error::<T>::InvalidStartDate);
 
 			if !Self::check_availability(place_id, formatted_start_date, formatted_end_date) {
-				return Err(Error::<T>::BookingDatesNotAvailable.into());
+				return Err(Error::<T>::BookingDatesNotAvailable.into())
 			}
+
+			let expected_amount = Self::_calculate_total_amount(
+				formatted_start_date,
+				formatted_end_date,
+				place.price_per_night,
+			)?;
+
+			match amount.saturated_into::<u64>().cmp(&expected_amount) {
+				Ordering::Less =>
+					return Err(DispatchError::Other("Amount provided is less that required")),
+				Ordering::Greater =>
+					return Err(DispatchError::Other("Amount provided exceeds the requested one")),
+				Ordering::Equal => {},
+			};
+			ensure!(T::Currency::can_reserve(&sender, amount), Error::<T>::NotEnoughFreeBalance);
 
 			let booking_data: BookingData<T> = BookingData::new(
 				place_id,
@@ -268,6 +282,19 @@ impl<T: Config> Pallet<T> {
 		}
 
 		bookings_to_cancel
+	}
+
+	fn _calculate_total_amount(
+		start_date: T::Moment,
+		end_date: T::Moment,
+		price_per_night: u64,
+	) -> Result<u64, DispatchError> {
+		let days_in_between = end_date - start_date;
+		let timestamp_u64 = Self::convert_moment_to_u64_in_milliseconds(days_in_between)?;
+		let timestamp_i64: i64 = i64::try_from(timestamp_u64).unwrap();
+		let days = u64::try_from(Duration::milliseconds(timestamp_i64).num_days()).unwrap();
+		// Add one extra night as it is rounded down
+		return Ok((days + 1) * price_per_night)
 	}
 
 	/// Perform the cancellation of a booking.

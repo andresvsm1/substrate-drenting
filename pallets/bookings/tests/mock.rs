@@ -100,11 +100,15 @@ impl pallet_bookings::Config for Test {
 	type Currency = Balances;
 }
 
+pub const BASE_TOKEN_AMOUNT: u64 = 100;
+
 pub fn build_with_default_config(users: Vec<(u64, [u8; 16])>) -> sp_io::TestExternalities {
 	let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 	GenesisConfig {
-		balances: BalancesConfig { balances: users.iter().map(|(user, _)| (*user, 100)).collect() },
+		balances: BalancesConfig {
+			balances: users.iter().map(|(user, _)| (*user, BASE_TOKEN_AMOUNT)).collect(),
+		},
 		..Default::default()
 	}
 	.assimilate_storage(&mut t)
