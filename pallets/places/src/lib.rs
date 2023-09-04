@@ -10,8 +10,7 @@ pub use pallet_timestamp;
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
-	use crate::interface::PlacesInterface;
-	use crate::structures::PlaceData;
+	use crate::{interface::PlacesInterface, structures::PlaceData};
 
 	use super::*;
 	use frame_support::{pallet_prelude::*, sp_std::prelude::*};

@@ -117,7 +117,7 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 			// Logging to the console on debug level
 			log::debug!(target: "did", "A Place with ID ➡ {:?} has been updated.", place_id);
 
-			return Ok(*place_id);
+			return Ok(*place_id)
 		}
 		Err(Error::<T>::UnhandledException)
 	}
@@ -133,7 +133,7 @@ impl<T: Config> PlacesInterface<T> for Pallet<T> {
 			});
 			<PlacesData<T>>::remove(place_id);
 
-			return Ok(*place_id);
+			return Ok(*place_id)
 		}
 		Err(Error::<T>::PlaceNotFound)
 	}

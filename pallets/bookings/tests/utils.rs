@@ -25,7 +25,6 @@ pub fn generate_timestamp(
 		.unwrap()
 }
 
-
 pub fn generate_timestamp_millis(
 	year: i32,
 	month: u32,

@@ -2,7 +2,7 @@
 
 use super::{Bytes, Config};
 use codec::{Decode, Encode};
-use frame_support::sp_std::{prelude::*, collections::btree_set::BTreeSet};
+use frame_support::sp_std::{collections::btree_set::BTreeSet, prelude::*};
 use scale_info::TypeInfo;
 
 // Struct to keep track of chain interactions
@@ -42,7 +42,8 @@ pub struct PlaceData<T: Config> {
 	pub name: Bytes,
 	/// The address of the place.
 	pub address: Bytes,
-	/// The description of the place. Just a reference to an external description, as this might be too big for the chain.
+	/// The description of the place. Just a reference to an external description, as this might be
+	/// too big for the chain.
 	pub description: T::Hash,
 	/// The price of the place.
 	pub price_per_night: u64,
