@@ -520,8 +520,8 @@ impl<T: Config> Pallet<T> {
 			// Try to withdraw first
 			T::Currency::unreserve(&booking_data.guest, booking_data.amount);
 			T::Currency::transfer(
-				&booking_data.host,
 				&booking_data.guest,
+				&booking_data.host,
 				booking_data.amount,
 				ExistenceRequirement::KeepAlive,
 			)?;
