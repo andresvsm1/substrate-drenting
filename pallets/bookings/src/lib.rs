@@ -328,7 +328,7 @@ pub mod pallet {
 			// Check sender
 			let sender = ensure_signed(origin)?;
 
-			let _id = Self::_withdraw_booking(sender.clone(), &booking_id)?;
+			Self::_withdraw_booking(sender.clone(), &booking_id)?;
 
 			// Deposit our "Completed" event.
 			Self::deposit_event(Event::BookingUpdated {
