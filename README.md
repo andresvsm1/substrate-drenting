@@ -20,20 +20,6 @@ Use the following command to build the node without launching it:
 cargo build --release
 ```
 
-### Embedded Docs
-
-After you build the project, you can use the following command to explore its parameters and subcommands:
-
-```sh
-./target/release/node-template -h
-```
-
-You can generate and view the [Rust Docs](https://doc.rust-lang.org/cargo/commands/cargo-doc.html) for this template with this command:
-
-```sh
-cargo +nightly doc --open
-```
-
 ### Single-Node Development Chain
 
 The following command starts a single-node development chain that doesn't persist state:
