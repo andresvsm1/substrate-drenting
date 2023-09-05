@@ -26,6 +26,8 @@ fn create_default_place() {
 		vec![create_hash("image_1"), create_hash("image_2")],
 		None,
 	);
+	// To emit events, we need to be past block 0
+	setup_blocks(1);
 }
 
 fn create_default_booking() {
@@ -200,6 +202,11 @@ fn test_create_booking_should_work() {
 		// Check GUEST funds have been locked
 		let reserved_balances = Balances::reserved_balance(&GUEST_A);
 		assert_eq!(reserved_balances, amount);
+
+		// Check emitted events
+		System::assert_last_event(
+			pallet_bookings::Event::BookingPlaced { id: booking_id, sender: GUEST_A }.into(),
+		);
 	})
 }
 
@@ -343,7 +350,7 @@ fn test_create_booking_with_outdated_start_day_should_fail() {
 		// Set current chain time to the expected start_date + 1
 		<pallet_places::pallet_timestamp::Pallet<Test>>::set_timestamp(current_time + 1);
 		// Advance one block to update chain now() time
-		setup_blocks(1);
+		setup_blocks(2);
 
 		assert_noop!(
 			Bookings::create_booking(
@@ -370,6 +377,16 @@ fn test_confirm_booking_should_work() {
 
 		let booking_data = Bookings::get_booking_by_id(booking_id).unwrap();
 		assert_eq!(booking_data.state, BookingState::Confirmed);
+
+		// Check emitted events
+		System::assert_last_event(
+			pallet_bookings::Event::BookingUpdated {
+				id: booking_id,
+				sender: OWNER,
+				state: BookingState::Confirmed,
+			}
+			.into(),
+		);
 	})
 }
 
@@ -421,11 +438,46 @@ fn test_confirm_outdated_booking_should_fail() {
 		// Set current chain time to the expected start_date + 1
 		<pallet_places::pallet_timestamp::Pallet<Test>>::set_timestamp(booking_data.start_date + 1);
 		// Advance one block to update chain now() time
-		setup_blocks(1);
+		setup_blocks(2);
 
 		assert_noop!(
 			Bookings::confirm_booking(RuntimeOrigin::signed(OWNER), booking_id),
 			Error::<Test>::CannotConfirmOutdatedBooking
+		);
+	})
+}
+
+// ========================================================
+// Reject Bookings Unit Tests
+// ========================================================
+#[test]
+fn test_reject_booking_should_work() {
+	build_with_defult_place_and_booking().execute_with(|| {
+		let place_id = Places::get_all_places()[0];
+		let booking_id: H256 = Bookings::get_all_bookings()[0];
+		let bookings_data = Bookings::get_booking_by_id(booking_id).unwrap();
+
+		assert_ok!(Bookings::reject_booking(RuntimeOrigin::signed(OWNER), booking_id));
+
+		let booking_data = Bookings::get_booking_by_id(booking_id).unwrap();
+		assert_eq!(booking_data.state, BookingState::Rejected);
+
+		// Ensure structures have been updated correctly
+		assert_eq!(Bookings::get_place_bookings(place_id), vec![]);
+		assert_eq!(Bookings::get_pending_booking_withdraws_by_account(OWNER), vec![]);
+		assert_eq!(
+			Bookings::get_pending_booking_withdraws_by_account(GUEST_A),
+			vec![(booking_id, bookings_data.amount)]
+		);
+
+		// Check emitted events
+		System::assert_last_event(
+			pallet_bookings::Event::BookingUpdated {
+				id: booking_id,
+				sender: OWNER,
+				state: BookingState::Rejected,
+			}
+			.into(),
 		);
 	})
 }
@@ -507,6 +559,16 @@ fn test_withdraw_checked_in_booking_should_work() {
 		assert_eq!(Bookings::get_place_bookings(booking_id), vec![]);
 		assert_eq!(Bookings::get_pending_booking_withdraws_by_account(OWNER), vec![]);
 		assert_eq!(Bookings::get_place_bookings(place_id), vec![]);
+
+		// Check emitted events
+		System::assert_last_event(
+			pallet_bookings::Event::BookingUpdated {
+				id: booking_id,
+				sender: OWNER,
+				state: BookingState::Completed,
+			}
+			.into(),
+		);
 	})
 }
 
