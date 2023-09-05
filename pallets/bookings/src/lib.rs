@@ -5,6 +5,7 @@ pub use pallet::*;
 pub mod functions;
 pub mod interface;
 pub mod structures;
+pub mod utils;
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
