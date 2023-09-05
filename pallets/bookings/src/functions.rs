@@ -60,7 +60,6 @@ impl<T: Config> BookingsInterface<T> for Pallet<T> {
 				formatted_start_date,
 				formatted_end_date,
 				amount,
-				BookingState::Created,
 			);
 
 			let hashing_data = BookingHashingData::from(booking_data.clone());

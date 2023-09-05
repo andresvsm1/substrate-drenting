@@ -36,9 +36,16 @@ impl<T: Config> BookingData<T> {
 		start_date: T::Moment,
 		end_date: T::Moment,
 		amount: BalanceOf<T>,
-		state: BookingState,
 	) -> Self {
-		BookingData { place_id, host, guest, start_date, end_date, amount, state }
+		BookingData {
+			place_id,
+			host,
+			guest,
+			start_date,
+			end_date,
+			amount,
+			state: BookingState::Created,
+		}
 	}
 }
 
