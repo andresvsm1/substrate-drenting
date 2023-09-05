@@ -99,14 +99,17 @@ pub mod pallet {
 		WrongState,
 		/// Cannot confirm booking. Booking is outdated
 		CannotConfirmOutdatedBooking,
+		/// Cannot checkin yet
+		CheckinNotAvailableYet,
 	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Create a new booking for a specified place with the provided booking details.
 		///
-		/// This extrinsic allows any signed account (`origin`) to create a booking for a specific `place_id` with the given `start_date`,
-		/// `end_date`, and `amount`. The booking request is processed, and if successful, a unique identifier (`Hash`) for the created booking
+		/// This extrinsic allows any signed account (`origin`) to create a booking for a specific
+		/// `place_id` with the given `start_date`, `end_date`, and `amount`. The booking request is
+		/// processed, and if successful, a unique identifier (`Hash`) for the created booking
 		/// is returned. The `amount` parameter represents the payment to be made for the booking.
 		///
 		/// # Arguments
@@ -119,10 +122,10 @@ pub mod pallet {
 		///
 		/// # Returns
 		///
-		/// Returns a `DispatchResult` indicating the success or failure of the booking creation operation.
-		/// If the operation is successful, a new booking is created, and the `DispatchResult` contains no error.
-		/// If the booking creation fails, the `DispatchResult` contains an error describing the reason for failure.
-		///
+		/// Returns a `DispatchResult` indicating the success or failure of the booking creation
+		/// operation. If the operation is successful, a new booking is created, and the
+		/// `DispatchResult` contains no error. If the booking creation fails, the `DispatchResult`
+		/// contains an error describing the reason for failure.
 		#[pallet::call_index(1)]
 		pub fn create_booking(
 			origin: OriginFor<T>,
@@ -144,24 +147,26 @@ pub mod pallet {
 
 		/// Update an existing booking with new booking details.
 		///
-		/// This extrinsic allows any signed account (`origin`) to update the booking details for a specific `place_id` with the provided `start_date`,
-		/// `end_date`, and `amount`. The update is processed, and if successful, the booking details are modified accordingly.
+		/// This extrinsic allows any signed account (`origin`) to update the booking details for a
+		/// specific `place_id` with the provided `start_date`, `end_date`, and `amount`. The update
+		/// is processed, and if successful, the booking details are modified accordingly.
 		///
 		/// # Arguments
 		///
 		/// * `origin` - The account identifier of the sender initiating the booking update.
 		/// * `booking_id` - The identifier of the booking to update.
-		/// * `place_id` - The unique identifier of the place associated with the booking to be updated.
+		/// * `place_id` - The unique identifier of the place associated with the booking to be
+		///   updated.
 		/// * `start_date` - The updated start date of the booking.
 		/// * `end_date` - The updated end date of the booking.
 		/// * `amount` - The updated payment amount for the booking.
 		///
 		/// # Returns
 		///
-		/// Returns a `DispatchResult` indicating the success or failure of the booking update operation.
-		/// If the operation is successful, the booking details are updated, and the `DispatchResult` contains no error.
-		/// If the booking update fails, the `DispatchResult` contains an error describing the reason for failure.
-		///
+		/// Returns a `DispatchResult` indicating the success or failure of the booking update
+		/// operation. If the operation is successful, the booking details are updated, and the
+		/// `DispatchResult` contains no error. If the booking update fails, the `DispatchResult`
+		/// contains an error describing the reason for failure.
 		#[pallet::call_index(2)]
 		pub fn update_booking(
 			origin: OriginFor<T>,
@@ -177,9 +182,10 @@ pub mod pallet {
 
 		/// Cancel an existing booking for a specified place.
 		///
-		/// This extrinsic allows any signed account (`origin`) to cancel a booking for a specific `booking_id`.
-		/// The cancelation process at the time is pretty simple, there are no penalties, but this can evolve to a more complex solution
-		/// where we implement a refund policy.
+		/// This extrinsic allows any signed account (`origin`) to cancel a booking for a specific
+		/// `booking_id`. The cancelation process at the time is pretty simple, there are no
+		/// penalties, but this can evolve to a more complex solution where we implement a refund
+		/// policy.
 		///
 		/// # Arguments
 		///
@@ -188,10 +194,10 @@ pub mod pallet {
 		///
 		/// # Returns
 		///
-		/// Returns a `DispatchResult` indicating the success or failure of the booking cancellation operation.
-		/// If the operation is successful, the booking is canceled, and the `DispatchResult` contains no error.
-		/// If the booking cancellation fails, the `DispatchResult` contains an error describing the reason for failure.
-		///
+		/// Returns a `DispatchResult` indicating the success or failure of the booking cancellation
+		/// operation. If the operation is successful, the booking is canceled, and the
+		/// `DispatchResult` contains no error. If the booking cancellation fails, the
+		/// `DispatchResult` contains an error describing the reason for failure.
 		#[pallet::call_index(3)]
 		pub fn cancel_booking(origin: OriginFor<T>, booking_id: T::Hash) -> DispatchResult {
 			// Check sender
@@ -200,8 +206,9 @@ pub mod pallet {
 
 		/// Confirm a pending booking request for a specified place.
 		///
-		/// This extrinsic allows any signed account (`origin`) to confirm a booking request for a specific `booking_id`.
-		/// Upon successful confirmation, the booking status changes to "Confirmed," and the booked dates are reserved for the guest.
+		/// This extrinsic allows any signed account (`origin`) to confirm a booking request for a
+		/// specific `booking_id`. Upon successful confirmation, the booking status changes to
+		/// "Confirmed," and the booked dates are reserved for the guest.
 		///
 		/// # Arguments
 		///
@@ -210,10 +217,10 @@ pub mod pallet {
 		///
 		/// # Returns
 		///
-		/// Returns a `DispatchResult` indicating the success or failure of the booking confirmation operation.
-		/// If the operation is successful, the booking is confirmed, and the `DispatchResult` contains no error.
-		/// If the booking confirmation fails, the `DispatchResult` contains an error describing the reason for failure.
-		///
+		/// Returns a `DispatchResult` indicating the success or failure of the booking confirmation
+		/// operation. If the operation is successful, the booking is confirmed, and the
+		/// `DispatchResult` contains no error. If the booking confirmation fails, the
+		/// `DispatchResult` contains an error describing the reason for failure.
 		#[pallet::call_index(4)]
 		pub fn confirm_booking(origin: OriginFor<T>, booking_id: T::Hash) -> DispatchResult {
 			// Check sender
@@ -232,8 +239,9 @@ pub mod pallet {
 
 		/// Reject a pending booking request for a specified place.
 		///
-		/// This extrinsic allows any signed account (`origin`) to reject a booking request for a specific `booking_id`.
-		/// After rejection, the booking status changes to "Rejected," and the place becomes available for other potential guests.
+		/// This extrinsic allows any signed account (`origin`) to reject a booking request for a
+		/// specific `booking_id`. After rejection, the booking status changes to "Rejected," and
+		/// the place becomes available for other potential guests.
 		///
 		/// # Arguments
 		///
@@ -242,10 +250,10 @@ pub mod pallet {
 		///
 		/// # Returns
 		///
-		/// Returns a `DispatchResult` indicating the success or failure of the booking rejection operation.
-		/// If the operation is successful, the booking is rejected, and the `DispatchResult` contains no error.
-		/// If the booking rejection fails, the `DispatchResult` contains an error describing the reason for failure.
-		///
+		/// Returns a `DispatchResult` indicating the success or failure of the booking rejection
+		/// operation. If the operation is successful, the booking is rejected, and the
+		/// `DispatchResult` contains no error. If the booking rejection fails, the `DispatchResult`
+		/// contains an error describing the reason for failure.
 		#[pallet::call_index(5)]
 		pub fn reject_booking(origin: OriginFor<T>, booking_id: T::Hash) -> DispatchResult {
 			// Check sender
@@ -264,8 +272,9 @@ pub mod pallet {
 
 		/// Perform Check-In for a Confirmed Booking.
 		///
-		/// This extrinsic allows any signed account (`origin`) to perform the check-in process for a confirmed booking.
-		/// The check-in process ensures that the guest gains access to the place for the specified booking period.
+		/// This extrinsic allows any signed account (`origin`) to perform the check-in process for
+		/// a confirmed booking. The check-in process ensures that the guest gains access to the
+		/// place for the specified booking period.
 		///
 		/// # Arguments
 		///
@@ -275,9 +284,9 @@ pub mod pallet {
 		/// # Returns
 		///
 		/// Returns a `DispatchResult` indicating the success or failure of the check-in process.
-		/// If the check-in is successful, the guest gains access to the place, and the `DispatchResult` contains no error.
-		/// If the check-in process fails, the `DispatchResult` contains an error describing the reason for failure.
-		///
+		/// If the check-in is successful, the guest gains access to the place, and the
+		/// `DispatchResult` contains no error. If the check-in process fails, the `DispatchResult`
+		/// contains an error describing the reason for failure.
 		#[pallet::call_index(6)]
 		pub fn checkin(origin: OriginFor<T>, booking_id: T::Hash) -> DispatchResult {
 			// Check sender
@@ -296,10 +305,11 @@ pub mod pallet {
 
 		/// Withdraw a Booking, Canceling the Reservation and Releasing the Funds.
 		///
-		/// This extrinsic allows any signed account (`origin`) to withdraw a booking for a specific `booking_id`.
-		/// At the time, this extrinsic might only be used by the host of the place or the guest in case of a cancelation
-		/// but when a refund policy is implemented, it might also be executed by both users controlling the amount
-		/// each part receives from the booking.
+		/// This extrinsic allows any signed account (`origin`) to withdraw a booking for a specific
+		/// `booking_id`. At the time, this extrinsic might only be used by the host of the place or
+		/// the guest in case of a cancelation but when a refund policy is implemented, it might
+		/// also be executed by both users controlling the amount each part receives from the
+		/// booking.
 		///
 		/// # Arguments
 		///
@@ -308,16 +318,16 @@ pub mod pallet {
 		///
 		/// # Returns
 		///
-		/// Returns a `DispatchResult` indicating the success or failure of the booking withdrawal operation.
-		/// If the operation is successful, the booking is withdrawn, and the `DispatchResult` contains no error.
-		/// If the booking withdrawal fails, the `DispatchResult` contains an error describing the reason for failure.
-		///
+		/// Returns a `DispatchResult` indicating the success or failure of the booking withdrawal
+		/// operation. If the operation is successful, the booking is withdrawn, and the
+		/// `DispatchResult` contains no error. If the booking withdrawal fails, the
+		/// `DispatchResult` contains an error describing the reason for failure.
 		#[pallet::call_index(7)]
 		pub fn withdraw_booking(origin: OriginFor<T>, booking_id: T::Hash) -> DispatchResult {
 			// Check sender
 			let sender = ensure_signed(origin)?;
 
-			Self::_withdraw_booking(sender.clone(), &booking_id)?;
+			let _id = Self::_withdraw_booking(sender.clone(), &booking_id)?;
 
 			// Deposit our "Completed" event.
 			Self::deposit_event(Event::BookingUpdated {

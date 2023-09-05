@@ -10,8 +10,7 @@ pub use pallet_timestamp;
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
-	use crate::interface::PlacesInterface;
-	use crate::structures::PlaceData;
+	use crate::{interface::PlacesInterface, structures::PlaceData};
 
 	use super::*;
 	use frame_support::{pallet_prelude::*, sp_std::prelude::*};
@@ -70,6 +69,10 @@ pub mod pallet {
 		PlaceAlreadyExists,
 		/// Place does not exists
 		PlaceNotFound,
+		/// Hour provided cannot be less than 0 or greater than 23
+		BadHoursProvided,
+		/// Checkout hour cannot be greater than checkin hour
+		CheckoutHourCannotBeGreaterThanCheckinHour,
 	}
 
 	#[pallet::call]
@@ -171,7 +174,7 @@ pub mod pallet {
 			// Check sender
 			let sender = ensure_signed(origin)?;
 
-			let place_id = Self::_remove_place(&place_id)?;
+			Self::_remove_place(&place_id)?;
 
 			// Deposit our "Removed" event.
 			Self::deposit_event(Event::PlaceRemoved { id: place_id, sender });

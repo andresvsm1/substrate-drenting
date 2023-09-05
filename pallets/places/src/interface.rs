@@ -7,9 +7,9 @@ pub trait PlacesInterface<T: Config> {
 
 	/// Store a new Place with its information.
 	///
-	/// This function creates a new Place with the specified details and stores it in the blockchain.
-	/// The Place can represent different types of accommodations like hotels, apartments, etc.
-	/// It returns a unique identifier (`Hash`) for the created Place.
+	/// This function creates a new Place with the specified details and stores it in the
+	/// blockchain. The Place can represent different types of accommodations like hotels,
+	/// apartments, etc. It returns a unique identifier (`Hash`) for the created Place.
 	///
 	/// # Arguments
 	///
@@ -27,9 +27,8 @@ pub trait PlacesInterface<T: Config> {
 	/// # Returns
 	///
 	/// Returns a `Result` indicating the success or failure of the Place creation operation. If the
-	/// operation is successful, the `Result` contains the unique identifier (`Hash`) for the created Place.
-	/// Otherwise, it contains an error indicating the reason for failure.
-	///
+	/// operation is successful, the `Result` contains the unique identifier (`Hash`) for the
+	/// created Place. Otherwise, it contains an error indicating the reason for failure.
 	fn _create_place(
 		place_type: PlaceType,
 		name: Bytes,
@@ -60,18 +59,20 @@ pub trait PlacesInterface<T: Config> {
 	/// * `address` - An optional new address of the Place (if provided).
 	/// * `description` - An optional new hash of the description of the Place (if provided).
 	/// * `price_per_night` - An optional new price per night for booking the Place (if provided).
-	/// * `checkin_hour` - An optional new hour when guests can check-in (in 24-hour format, if provided).
-	/// * `checkout_hour` - An optional new hour when guests must check-out (in 24-hour format, if provided).
+	/// * `checkin_hour` - An optional new hour when guests can check-in (in 24-hour format, if
+	///   provided).
+	/// * `checkout_hour` - An optional new hour when guests must check-out (in 24-hour format, if
+	///   provided).
 	/// * `images` - An optional new list of hashes representing images of the Place (if provided).
-	/// * `number_of_floors` - An optional new field indicating the number of floors in the Place (if provided).
+	/// * `number_of_floors` - An optional new field indicating the number of floors in the Place
+	///   (if provided).
 	/// * `sender` - The account identifier of the sender updating the Place.
 	///
 	/// # Returns
 	///
 	/// Returns a `Result` indicating the success or failure of the Place update operation. If the
-	/// operation is successful, the `Result` contains the unique identifier (`Hash`) for the updated Place.
-	/// Otherwise, it contains an error indicating the reason for failure.
-	///
+	/// operation is successful, the `Result` contains the unique identifier (`Hash`) for the
+	/// updated Place. Otherwise, it contains an error indicating the reason for failure.
 	fn _update_place(
 		place_id: &T::Hash,
 		place_type: Option<PlaceType>,
@@ -99,8 +100,7 @@ pub trait PlacesInterface<T: Config> {
 	/// # Returns
 	///
 	/// Returns a `Result` indicating the success or failure of the Place deletion operation. If the
-	/// operation is successful, the `Result` contains the unique identifier (`Hash`) for the deleted Place.
-	/// Otherwise, it contains an error indicating the reason for failure.
-	///
+	/// operation is successful, the `Result` contains the unique identifier (`Hash`) for the
+	/// deleted Place. Otherwise, it contains an error indicating the reason for failure.
 	fn _remove_place(place_id: &T::Hash) -> Result<T::Hash, Self::Error>;
 }

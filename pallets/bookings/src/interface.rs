@@ -6,9 +6,9 @@ pub trait BookingsInterface<T: Config> {
 
 	/// Store a booking with its information.
 	///
-	/// This function creates a new booking for the specified `place_id` with the provided `start_date`,
-	/// `end_date`, and `sender` account identifier. It stores the booking information and returns a
-	/// unique identifier (`Hash`) for the created booking.
+	/// This function creates a new booking for the specified `place_id` with the provided
+	/// `start_date`, `end_date`, and `sender` account identifier. It stores the booking information
+	/// and returns a unique identifier (`Hash`) for the created booking.
 	/// After creation, the booking status is set to "Pending", and requires host's supervision.
 	///
 	/// # Arguments
@@ -20,10 +20,9 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// # Returns
 	///
-	/// Returns a `Result` indicating the success or failure of the booking creation operation. If the
-	/// operation is successful, the `Result` contains the unique identifier (`Hash`) for the created booking.
-	/// Otherwise, it contains an error indicating the reason for failure.
-	///
+	/// Returns a `Result` indicating the success or failure of the booking creation operation. If
+	/// the operation is successful, the `Result` contains the unique identifier (`Hash`) for the
+	/// created booking. Otherwise, it contains an error indicating the reason for failure.
 	fn _create_booking(
 		sender: T::AccountId,
 		place_id: T::Hash,
@@ -34,9 +33,9 @@ pub trait BookingsInterface<T: Config> {
 
 	/// Update a booking's information.
 	///
-	/// This function updates an existing booking identified by `booking_id` with the provided `start_date`,
-	/// `end_date`, and `sender` account identifier. It modifies the booking information and returns the
-	/// updated booking identifier.
+	/// This function updates an existing booking identified by `booking_id` with the provided
+	/// `start_date`, `end_date`, and `sender` account identifier. It modifies the booking
+	/// information and returns the updated booking identifier.
 	/// After an update, the booking status changes to "Pending", as it is considered
 	/// a new booking, which has to be analyzed by the host.
 	///
@@ -50,10 +49,9 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// # Returns
 	///
-	/// Returns a `Result` indicating the success or failure of the booking update operation. If the operation
-	/// is successful, the `Result` contains the updated booking identifier. Otherwise, it contains an error
-	/// indicating the reason for failure.
-	///
+	/// Returns a `Result` indicating the success or failure of the booking update operation. If the
+	/// operation is successful, the `Result` contains the updated booking identifier. Otherwise, it
+	/// contains an error indicating the reason for failure.
 	fn _update_booking(
 		sender: T::AccountId,
 		booking_id: &T::Hash,
@@ -64,9 +62,10 @@ pub trait BookingsInterface<T: Config> {
 
 	/// Cancel a booking.
 	///
-	/// This function cancels an existing booking identified by `booking_id`. It removes the booking from
-	/// the system and returns the canceled booking identifier.
-	/// After a cancelation, the booking status changes to "Canceled," and the place becomes available for other potential guests.
+	/// This function cancels an existing booking identified by `booking_id`. It removes the booking
+	/// from the system and returns the canceled booking identifier.
+	/// After a cancelation, the booking status changes to "Canceled," and the place becomes
+	/// available for other potential guests.
 	///
 	/// # Arguments
 	///
@@ -75,10 +74,9 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// # Returns
 	///
-	/// Returns a `Result` indicating the success or failure of the booking cancellation operation. If the
-	/// operation is successful, the `Result` contains the canceled booking identifier. Otherwise, it contains
-	/// an error indicating the reason for failure.
-	///
+	/// Returns a `Result` indicating the success or failure of the booking cancellation operation.
+	/// If the operation is successful, the `Result` contains the canceled booking identifier.
+	/// Otherwise, it contains an error indicating the reason for failure.
 	fn _cancel_booking(
 		sender: T::AccountId,
 		booking_id: &T::Hash,
@@ -88,7 +86,8 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// This function allows a host to confirm a booking request for a specific place.
 	/// The `booking_id` parameter identifies the booking request to be confirmed.
-	/// Upon successful confirmation, the booking status changes to "Confirmed," and the booked dates are reserved for the guest.
+	/// Upon successful confirmation, the booking status changes to "Confirmed," and the booked
+	/// dates are reserved for the guest.
 	///
 	/// # Arguments
 	///
@@ -98,9 +97,9 @@ pub trait BookingsInterface<T: Config> {
 	/// # Returns
 	///
 	/// Returns a `Result` indicating the success or failure of the booking confirmation operation.
-	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the confirmed booking.
-	/// Otherwise, it contains a `DispatchError` explaining the reason for failure.
-	///
+	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the
+	/// confirmed booking. Otherwise, it contains a `DispatchError` explaining the reason for
+	/// failure.
 	fn _confirm_booking(
 		sender: T::AccountId,
 		booking_id: &T::Hash,
@@ -110,7 +109,8 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// This function allows a host to reject a booking request for a specific place.
 	/// The `booking_id` parameter identifies the booking request to be rejected.
-	/// After rejection, the booking status changes to "Rejected," and the place becomes available for other potential guests.
+	/// After rejection, the booking status changes to "Rejected," and the place becomes available
+	/// for other potential guests.
 	///
 	/// # Arguments
 	///
@@ -120,9 +120,9 @@ pub trait BookingsInterface<T: Config> {
 	/// # Returns
 	///
 	/// Returns a `Result` indicating the success or failure of the booking rejection operation.
-	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the rejected booking.
-	/// Otherwise, it contains a `DispatchError` explaining the reason for failure.
-	///
+	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the
+	/// rejected booking. Otherwise, it contains a `DispatchError` explaining the reason for
+	/// failure.
 	fn _reject_booking(
 		sender: T::AccountId,
 		booking_id: &T::Hash,
@@ -132,8 +132,8 @@ pub trait BookingsInterface<T: Config> {
 	///
 	/// This function allows a guest to perform the check-in process for a confirmed booking.
 	/// The `booking_id` parameter identifies the booking for which the check-in is being performed.
-	/// After successful check-in, the guest gains access to the place for the specified booking period and the booking
-	/// state is set to `HostCanWithdraw`.
+	/// After successful check-in, the guest gains access to the place for the specified booking
+	/// period and the booking state is set to `HostCanWithdraw`.
 	///
 	/// # Arguments
 	///
@@ -143,17 +143,18 @@ pub trait BookingsInterface<T: Config> {
 	/// # Returns
 	///
 	/// Returns a `Result` indicating the success or failure of the check-in operation.
-	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the checked-in booking.
-	/// Otherwise, it contains a `DispatchError` explaining the reason for failure.
-	///
+	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the
+	/// checked-in booking. Otherwise, it contains a `DispatchError` explaining the reason for
+	/// failure.
 	fn _checkin(sender: T::AccountId, booking_id: &T::Hash) -> Result<T::Hash, DispatchError>;
 
 	/// Withdraw a Booking.
 	///
-	/// This function allows a guest or host to withdraw a booking (canceled or completed), transferring/releasing the funds.
-	/// The `booking_id` parameter identifies the booking to be withdrawn.
-	/// Based on a RefundPolicy, the booking can be fully refunded, partially or not refunded at all.
-	/// After executiong this function, the state of the booking can be `UserCanWithdraw`, `HostCanWithdraw` or `Finalized`
+	/// This function allows a guest or host to withdraw a booking (canceled or completed),
+	/// transferring/releasing the funds. The `booking_id` parameter identifies the booking to be
+	/// withdrawn. Based on a RefundPolicy, the booking can be fully refunded, partially or not
+	/// refunded at all. After executiong this function, the state of the booking can be
+	/// `UserCanWithdraw`, `HostCanWithdraw` or `Finalized`
 	///
 	/// # Arguments
 	///
@@ -163,9 +164,9 @@ pub trait BookingsInterface<T: Config> {
 	/// # Returns
 	///
 	/// Returns a `Result` indicating the success or failure of the booking withdrawal operation.
-	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the withdrawn booking.
-	/// Otherwise, it contains a `DispatchError` explaining the reason for failure.
-	///
+	/// If the operation is successful, the `Result` contains the unique identifier (`Hash`) for the
+	/// withdrawn booking. Otherwise, it contains a `DispatchError` explaining the reason for
+	/// failure.
 	fn _withdraw_booking(
 		sender: T::AccountId,
 		booking_id: &T::Hash,

@@ -1,12 +1,12 @@
 #![cfg(test)]
-
 use frame_support::{parameter_types, traits::ConstU32};
-use pallet_places;
+use pallet_bookings;
+use pallet_places::pallet_timestamp;
 use sp_core::H256;
-
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, Header as _, IdentityLookup},
+	BuildStorage,
 };
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -19,8 +19,10 @@ frame_support::construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system,
-		Timestamp: pallet_timestamp,
 		Places: pallet_places,
+		Balances: pallet_balances,
+		Timestamp: pallet_timestamp,
+		Bookings: pallet_bookings,
 	}
 );
 
@@ -49,11 +51,33 @@ impl frame_system::Config for Test {
 	type PalletInfo = PalletInfo;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type AccountData = ();
+	type AccountData = pallet_balances::AccountData<u64>;
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
+}
+
+parameter_types! {
+	pub const ExistentialDeposit: u64 = 1;
+}
+
+impl pallet_balances::Config for Test {
+	type MaxLocks = ();
+	type MaxReserves = ();
+	type ReserveIdentifier = [u8; 8];
+	/// The type for recording an account's balance.
+	type Balance = u64;
+	/// The ubiquitous event type.
+	type RuntimeEvent = RuntimeEvent;
+	type DustRemoval = ();
+	type ExistentialDeposit = ExistentialDeposit;
+	type AccountStore = System;
+	type WeightInfo = ();
+	type HoldIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
 }
 
 parameter_types! {
@@ -71,8 +95,36 @@ impl pallet_places::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 }
 
-pub fn build_with_default_config() -> sp_io::TestExternalities {
-	frame_system::GenesisConfig::default().build_storage::<Test>().unwrap().into()
+impl pallet_bookings::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+}
+
+pub const BASE_TOKEN_AMOUNT: u64 = 100;
+
+pub fn build_with_default_config(users: Vec<(u64, [u8; 16])>) -> sp_io::TestExternalities {
+	let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+
+	GenesisConfig {
+		balances: BalancesConfig {
+			balances: users.iter().map(|(user, _)| (*user, BASE_TOKEN_AMOUNT)).collect(),
+		},
+		..Default::default()
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	let mut ext = sp_io::TestExternalities::new(t);
+	ext.execute_with(|| System::set_block_number(1));
+	ext
+}
+
+pub fn build_with_funded_accounts() -> sp_io::TestExternalities {
+	build_with_default_config(vec![
+		(0, *b"123456789012345a"),
+		(1, *b"123456789012345a"),
+		(2, *b"123456789012345a"),
+	])
 }
 
 pub fn setup_blocks(blocks: u64) {
