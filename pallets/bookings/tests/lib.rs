@@ -509,3 +509,41 @@ fn test_withdraw_checked_in_booking_should_work() {
 		assert_eq!(Bookings::get_place_bookings(place_id), vec![]);
 	})
 }
+
+#[test]
+fn test_withdraw_rejected_booking_should_work() {
+	// Caller: GUEST_A
+	build_with_defult_place_and_booking().execute_with(|| {
+		let place_id = Places::get_all_places()[0];
+		let booking_id: H256 = Bookings::get_all_bookings()[0];
+
+		// Reject booking
+		assert_ok!(Bookings::reject_booking(RuntimeOrigin::signed(OWNER), booking_id));
+
+		// As the GUEST_A, withdraw the rejected booking
+		assert_ok!(Bookings::withdraw_booking(RuntimeOrigin::signed(GUEST_A), booking_id));
+
+		// Retrieve latest state
+		let booking_data: BookingData<Test> = Bookings::get_booking_by_id(booking_id).unwrap();
+		assert_eq!(booking_data.state, BookingState::Completed);
+
+		// Check GUEST_A has successfully unreserved his funds
+		assert_eq!(Balances::reserved_balance(&GUEST_A), 0);
+
+		// Check structs have been updated correctly
+		assert_eq!(Bookings::get_place_bookings(booking_id), vec![]);
+		assert_eq!(Bookings::get_pending_booking_withdraws_by_account(OWNER), vec![]);
+		assert_eq!(Bookings::get_pending_booking_withdraws_by_account(GUEST_A), vec![]);
+		assert_eq!(Bookings::get_place_bookings(place_id), vec![]);
+
+		// Check emitted events
+		System::assert_last_event(
+			pallet_bookings::Event::BookingUpdated {
+				id: booking_id,
+				sender: GUEST_A,
+				state: BookingState::Completed,
+			}
+			.into(),
+		);
+	})
+}

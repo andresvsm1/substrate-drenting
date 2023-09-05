@@ -551,7 +551,38 @@ impl<T: Config> Pallet<T> {
 			booking_data.state = BookingState::Completed;
 			<BookingsData<T>>::insert(booking_id, booking_data);
 
-			return Ok((*booking_id));
+			return Ok(*booking_id)
+		}
+
+		Err(Error::<T>::BookingNotFound.into())
+	}
+
+	fn guest_withdraw_booking(
+		sender: <T>::AccountId,
+		booking_id: &T::Hash,
+	) -> Result<T::Hash, DispatchError> {
+		if let Some(mut booking_data) = Self::get_booking_by_id(booking_id) {
+			ensure!(sender == booking_data.guest, Error::<T>::NotPlaceGuest);
+
+			// Simply unreserve the funds
+			T::Currency::unreserve(&booking_data.guest, booking_data.amount);
+
+			// Now persist new state
+			<PendingBookingWithdraws<T>>::mutate(&booking_data.guest, |booking_withdraws| {
+				for (index, tuple) in booking_withdraws.iter().enumerate() {
+					// Check if the first element of the tuple matches the target value
+					if tuple.0 == *booking_id {
+						// Perform the swap_remove operation
+						booking_withdraws.swap_remove(index);
+						break
+					}
+				}
+			});
+
+			booking_data.state = BookingState::Completed;
+			<BookingsData<T>>::insert(booking_id, booking_data);
+
+			return Ok(*booking_id)
 		}
 
 		Err(Error::<T>::BookingNotFound.into())
